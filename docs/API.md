@@ -52,8 +52,10 @@ Other: `405` wrong method, `404` unknown `/api/*` path.
    `fjfp_vid=<id>.<HMAC signature>; Path=/api; HttpOnly; SameSite=Lax; Max-Age=400d` (`Secure` on https).
 2. `POST` requires a valid signed cookie. The signature stops tampering; it does not stop someone from simply
    clearing cookies.
-3. D1 stores only `HMAC-SHA256(VOTER_HMAC_SECRET, "voter:" + id)`; the raw id never reaches the database.
-   The cookie signature uses a different prefix so the two values cannot be confused.
+3. D1 stores only `HMAC-SHA256(VOTER_HMAC_SECRET, "voter:" + pollId + ":" + day + ":" + id)`; the raw id never
+   reaches the database. The hash is **scoped to the poll and the Brasília day**, so the same browser has an
+   unrelated code each day and votes on different days cannot be joined or linked. The cookie signature and the
+   rate-limit keys use different prefixes so the values cannot be confused.
 
 **Known limitation (disclosed in the UI):** a browser-level rule cannot stop a determined person from voting
 repeatedly (private windows, cleared cookies). This is an informal poll with no statistical value.

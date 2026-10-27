@@ -23,6 +23,15 @@ const yesPct = total ? Math.round((counts.yes / total) * 100) : 0;
     <button type="button" class="vote vote--no" data-choice="no" aria-pressed="false" disabled={!mock}>Não</button>
   </div>
 
+  {!mock && (
+    <p class="presometro__anon">
+      <svg class="presometro__lock" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="M8 1a3.5 3.5 0 0 0-3.5 3.5V6H4a1 1 0 0 0-1 1v6.5a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-.5V4.5A3.5 3.5 0 0 0 8 1Zm2 5H6V4.5a2 2 0 1 1 4 0V6Z"/>
+      </svg>
+      <span><strong>Voto anônimo.</strong> Sem nome, e-mail ou login, e não guardamos seu IP. <a href="/privacidade#anonimato">Como funciona</a></span>
+    </p>
+  )}
+
   <p class="presometro__msg" data-status-msg role="status" hidden></p>
 
   <div class="presometro__result">
@@ -54,7 +63,7 @@ const yesPct = total ? Math.round((counts.yes / total) * 100) : 0;
     unavailable: 'Presômetro temporariamente indisponível.',
     closed: 'Enquete encerrada.',
     upcoming: 'A enquete ainda não começou.',
-    voted: 'Voto registrado. Volte amanhã para votar de novo.',
+    voted: 'Voto registrado de forma anônima. Volte amanhã para votar de novo.',
     votedDemo: 'Voto de demonstração — não registrado publicamente.',
     submitting: 'Enviando seu voto…',
     rateLimited: 'Muitos votos vindos da sua rede agora. Tente de novo em instantes.',

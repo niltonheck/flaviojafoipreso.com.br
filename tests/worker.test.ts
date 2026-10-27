@@ -126,6 +126,30 @@ describe('POST /api/polls/:id/votes', () => {
     expect((await call(post('yes', cookie, { path: '/api/polls/nope/votes' }))).status).toBe(404);
   });
 
+  it('gives the same browser an unrelated code every day, so votes on different days cannot be linked', async () => {
+    const { call, visit, c, raw } = await setup();
+    const { cookie } = await visit();
+    await call(post('yes', cookie));
+    c.set(new Date('2026-10-28T15:00:00Z'));
+    await call(post('no', cookie));
+    c.set(new Date('2026-10-29T15:00:00Z'));
+    await call(post('yes', cookie));
+    const rows = raw.prepare('SELECT day, voter_hash FROM votes ORDER BY day').all() as { day: string; voter_hash: string }[];
+    expect(rows).toHaveLength(3);
+    expect(new Set(rows.map((r) => r.voter_hash)).size).toBe(3); // three days, three unrelated codes
+    // and no stored value is shared between any two rows that a join on the code could exploit
+    expect(raw.prepare('SELECT COUNT(*) AS n FROM votes a JOIN votes b ON a.voter_hash = b.voter_hash AND a.id <> b.id').get()).toEqual({ n: 0 });
+  });
+
+  it('still blocks a second vote on the same day, and viewer state follows the day', async () => {
+    const { call, visit, c } = await setup();
+    const { cookie } = await visit();
+    await call(post('yes', cookie));
+    expect((await call(post('no', cookie))).status).toBe(409);
+    c.set(new Date('2026-10-28T15:00:00Z'));
+    expect(await (await call(get('/api/polls/current', { headers: { cookie } }))).json()).toMatchObject({ viewerHasVoted: false });
+  });
+
   it('stores only an HMAC of the voter id, never the raw identifier', async () => {
     const { call, visit, raw } = await setup();
     const { cookie } = await visit();

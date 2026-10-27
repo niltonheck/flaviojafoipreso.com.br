@@ -32,9 +32,13 @@ export async function verifyVoterCookie(secret: string, value: string | undefine
   }
 }
 
-/** What D1 stores instead of the raw identifier. */
-export const voterHash = async (secret: string, id: string) => hex(await mac(secret, `voter:${id}`));
+/**
+ * What D1 stores instead of the raw identifier. It is scoped to one poll AND one day, so the same browser
+ * gets an unrelated code every day: votes on different days cannot be linked to each other.
+ */
+export const voterHash = async (secret: string, id: string, pollId: string, day: string) =>
+  hex(await mac(secret, `voter:${pollId}:${day}:${id}`));
 
 /** Short non-reversible key for rate limiting; never persisted by us. */
 export const rateKey = async (secret: string, label: string, value: string) =>
-  `${label}:${(await voterHash(secret, `rl:${value}`)).slice(0, 32)}`;
+  `${label}:${(await hex(await mac(secret, `ratelimit:${label}:${value}`))).slice(0, 32)}`;

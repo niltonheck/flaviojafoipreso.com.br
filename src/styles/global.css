@@ -111,6 +111,9 @@ a { color: inherit; }
 .presometro__note { margin: 16px 0 0; font-size: .75rem; color: var(--muted); line-height: 1.4; }
 .presometro__note strong { color: var(--text); letter-spacing: .06em; }
 .presometro__voted { margin: 8px 0 0; font-size: .8rem; font-weight: 600; color: var(--green); }
+.presometro__anon { display: flex; gap: 8px; align-items: flex-start; margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; background: #f1f6f2; color: #1d3b27; font-size: .85rem; line-height: 1.4; }
+.presometro__anon a { color: inherit; text-underline-offset: 3px; }
+.presometro__lock { flex: none; margin-top: 2px; color: var(--green); }
 .presometro__msg { margin: 12px 0 0; font-size: .85rem; font-weight: 600; color: var(--muted); }
 .presometro__msg[data-kind="ok"] { color: var(--green); }
 .presometro__msg[data-kind="error"] { color: var(--red); }

@@ -24,9 +24,22 @@ const updated = fmtDate(site.privacyUpdatedAt);
     <ul>
       <li>Não há contas, cadastro, e-mail, anúncios, análise de audiência nem scripts ou fontes de terceiros.</li>
       <li>Para a enquete (Presômetro) usamos <strong>um cookie</strong> com um identificador aleatório, só para permitir <strong>um voto por dia por navegador</strong>.</li>
-      <li>Guardamos o seu voto (sim ou não), o dia e um código criptográfico derivado desse identificador. <strong>Não guardamos o identificador em si, nem o seu IP.</strong></li>
+      <li><strong>Seu voto é anônimo.</strong> Guardamos a escolha (sim ou não), o dia e um código embaralhado que muda todo dia. <strong>Não guardamos o identificador em si, nem o seu IP</strong>, e não há como ligar o voto a você nem votos de dias diferentes ao mesmo navegador.</li>
       <li>É uma enquete informal, sem valor estatístico, e o limite de um voto por dia pode ser contornado.</li>
     </ul>
+
+    <h2 id="anonimato">Seu voto é anônimo</h2>
+    <p>Na prática, isto significa que:</p>
+    <ul>
+      <li>não pedimos nome, e-mail, telefone nem login, e não guardamos o seu endereço IP;</li>
+      <li>o que fica registrado de cada voto é só: qual enquete, a escolha (sim/não), o dia e a hora, e um <strong>código</strong>;</li>
+      <li>esse código existe apenas para impedir um segundo voto <em>no mesmo dia</em> pelo mesmo navegador. Ele é calculado com uma chave secreta que só o servidor tem, <strong>muda todos os dias</strong> e não pode ser revertido para o identificador do cookie;</li>
+      <li>por isso não é possível ligar o voto a uma pessoa, nem saber o que um mesmo navegador votou em dias diferentes.</li>
+    </ul>
+    <p>
+      Para ser exato: o código é um <em>pseudônimo</em>, não uma ausência total de dado. Só seria possível confirmar o voto de um navegador específico
+      quem tivesse, ao mesmo tempo, o cookie daquele navegador, o banco de dados e a chave secreta. Nós não temos o cookie de ninguém.
+    </p>
 
     <h2>Quem é o responsável</h2>
     <p>
@@ -46,7 +59,7 @@ const updated = fmtDate(site.privacyUpdatedAt);
         <tr>
           <th scope="row">Seu voto</th>
           <td>Contar os resultados da enquete.</td>
-          <td>Guardamos: enquete, escolha (sim/não), dia (horário de Brasília), data e hora do voto e um código (HMAC) calculado a partir do identificador com uma chave secreta do servidor. Com esse código não é possível descobrir o identificador original.</td>
+          <td>Guardamos: enquete, escolha (sim/não), dia (horário de Brasília), data e hora do voto e um código (HMAC) calculado a partir do identificador, da enquete e do dia, com uma chave secreta do servidor. O código muda a cada dia e não permite descobrir o identificador original.</td>
         </tr>
         <tr>
           <th scope="row">Dados técnicos de conexão</th>

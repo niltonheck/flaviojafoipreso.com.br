@@ -41,12 +41,14 @@ export function createApi(deps: ApiDeps = {}) {
     return value;
   }
 
-  async function snapshot(env: Env, poll: PollRow, at: Date, voter: { hash: string } | null, fresh = false) {
+  async function snapshot(env: Env, poll: PollRow, at: Date, voter: { id: string } | null, fresh = false) {
     const state = pollState(poll, at);
     // Open polls show today's tally; once closed, the whole poll.
     const day = state === 'closed' ? null : brasiliaDay(at);
     const t = state === 'upcoming' ? { yes: 0, no: 0 } : await counts(env, poll, day, fresh);
-    const mine = voter && day && state === 'open' ? await viewerChoice(env.DB, poll.id, day, voter.hash) : null;
+    const mine = voter && day && state === 'open'
+      ? await viewerChoice(env.DB, poll.id, day, await voterHash(env.VOTER_HMAC_SECRET!, voter.id, poll.id, day))
+      : null;
     return {
       id: poll.id,
       question: poll.question,
@@ -92,7 +94,7 @@ export function createApi(deps: ApiDeps = {}) {
         const secure = new URL(request.url).protocol === 'https:' ? '; Secure' : '';
         extra['set-cookie'] = `${COOKIE}=${await signVoterCookie(secret, id)}; Path=/api; Max-Age=${COOKIE_MAX_AGE}; HttpOnly; SameSite=Lax${secure}`;
       }
-      return json(200, await snapshot(env, poll, now(), { hash: await voterHash(secret, id) }), extra);
+      return json(200, await snapshot(env, poll, now(), { id }), extra);
     } catch (e) {
       return unavailable('get', e);
     }
@@ -138,11 +140,12 @@ export function createApi(deps: ApiDeps = {}) {
       if (state === 'closed') return fail(403, 'poll_closed');
       if (state === 'upcoming') return fail(403, 'poll_upcoming');
 
-      const hash = await voterHash(secret, id);
-      const outcome = await insertVote(env.DB, { pollId: poll.id, day: brasiliaDay(at), choice: choice as Choice, hash, now: at });
+      const day = brasiliaDay(at);
+      const hash = await voterHash(secret, id, poll.id, day);
+      const outcome = await insertVote(env.DB, { pollId: poll.id, day, choice: choice as Choice, hash, now: at });
       if (outcome === 'duplicate') return fail(409, 'already_voted');
-      cache.delete(`${poll.id}|${brasiliaDay(at)}`);
-      return json(201, await snapshot(env, poll, at, { hash }, true));
+      cache.delete(`${poll.id}|${day}`);
+      return json(201, await snapshot(env, poll, at, { id }, true));
     } catch (e) {
       return unavailable('vote', e);
     }

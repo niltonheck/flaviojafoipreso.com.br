@@ -13,7 +13,7 @@ CREATE TABLE votes (
   poll_id TEXT NOT NULL REFERENCES polls(id),
   day TEXT NOT NULL,
   choice TEXT NOT NULL CHECK (choice IN ('yes', 'no')),
-  voter_hash TEXT NOT NULL, -- HMAC-SHA256(secret, voter id); the raw id is never stored
+  voter_hash TEXT NOT NULL, -- HMAC-SHA256(secret, poll + day + voter id): different every day, raw id never stored
   created_at TEXT NOT NULL,
   UNIQUE (poll_id, day, voter_hash)
 );
