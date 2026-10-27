@@ -74,10 +74,16 @@ pricing and behavior at deploy time and consider a Cloudflare WAF rate rule in f
 
 ## Data and retention
 
-`polls` and `votes` tables, plus `votes_poll_day_choice_idx` and `UNIQUE(poll_id, day, voter_hash)` which makes
-writes atomic: a duplicate is rejected by the database, never by a read-then-write. Poll rows are immutable once
-votes exist (create a new poll instead). Retention (decided): voter hashes are kept for the poll's life + 90 days,
-then rolled up into daily totals and deleted. That job lands in PR 4.
+Tables: `polls`, `votes`, `poll_day_totals`. `votes` has `votes_poll_day_choice_idx` and
+`UNIQUE(poll_id, day, voter_hash)`, which makes writes atomic: a duplicate is rejected by the database, never by
+a read-then-write. Poll rows are immutable once votes exist (create a new poll instead).
+
+**Retention (decided):** a per-voter code is only needed to stop a second vote on the same day, so it does not
+outlive its day by more than 48-72 h. A daily cron (`0 5 * * *` = 02:00 Brasília, `worker/retention.ts`) rolls every
+day that ended at least 48 h ago into `poll_day_totals` (anonymous yes/no counts) and deletes that day's `votes`
+rows, in one D1 batch (all-or-nothing; re-running never double-counts). The job never touches recent days, the only
+days that can still receive votes. Once a poll is closed, the final result is `poll_day_totals` + any not-yet-purged
+votes. Logs from the job contain counts and a date only.
 
 ## Local development
 

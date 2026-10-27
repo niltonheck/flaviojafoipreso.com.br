@@ -23,7 +23,11 @@
     "deploy:staging": "npm run check:wrangler -- staging && npm run build:staging && wrangler deploy --env staging",
     "db:migrate:staging": "npm run check:wrangler -- staging && wrangler d1 migrations apply DB --env staging --remote",
     "db:seed:staging": "npm run check:wrangler -- staging && wrangler d1 execute DB --env staging --remote --file=seeds/staging.sql",
-    "health:staging": "node scripts/health.ts"
+    "health:staging": "node scripts/health.ts",
+    "db:migrate:production": "npm run check:wrangler -- production && wrangler d1 migrations apply DB --env production --remote",
+    "db:seed:production": "npm run check:wrangler -- production && wrangler d1 execute DB --env production --remote --file=seeds/production.sql",
+    "deploy:production": "npm run check:wrangler -- production && npm run build && wrangler deploy --env production",
+    "health:production": "node scripts/health.ts https://flaviojafoipreso.com.br --expect=production"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.12",

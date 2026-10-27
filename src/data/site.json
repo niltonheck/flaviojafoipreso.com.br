@@ -1,6 +1,7 @@
 {
-  "operatorName": "[PREENCHER: nome do responsável pelo site]",
-  "contactEmail": "[PREENCHER: e-mail para solicitações de privacidade]",
+  "operatorName": "Responsável pelo projeto “Flávio Já Foi Preso?”",
+  "contactEmail": "privacidade@flaviojafoipreso.com.br",
+  "contactEmailConfirmed": false,
   "privacyUpdatedAt": "2026-10-27",
-  "voteRetentionDaysAfterClose": 90
+  "codeRetentionHours": 72
 }

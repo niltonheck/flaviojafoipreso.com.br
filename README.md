@@ -23,10 +23,13 @@ Produção nunca carrega fixtures nem o mock da enquete: `PUBLIC_POLL_MODE=mock`
 
 ## Antes de publicar em produção
 
-- `src/data/site.json`: preencha `operatorName` e `contactEmail` (política de privacidade em `/privacidade`).
-  `npm run build` (produção) **falha** enquanto houver `[PREENCHER]` no site.
-- O texto da política é um rascunho e precisa de revisão jurídica.
-- A regra de retenção (votos + 90 dias, depois só totais) ainda não tem o job que a executa (PR 4).
+Tudo o que é código está pronto; falta o que depende de você (detalhes e comandos em [`docs/DEPLOY.md`](docs/DEPLOY.md)):
+
+1. Colocar `flaviojafoipreso.com.br` na Cloudflare (hoje usa o DNS padrão do Registro.br).
+2. Criar `privacidade@flaviojafoipreso.com.br` (Email Routing) e marcar `contactEmailConfirmed: true` em `src/data/site.json`
+   — o build de produção **falha** enquanto isso não for feito.
+3. Revisão jurídica da política em `/privacidade` (é um rascunho).
+4. Go-live: D1 de produção, secret novo, `npm run deploy:production`, regra de redirect `www` → apex.
 
 ## Estrutura
 
@@ -63,4 +66,4 @@ como rodar localmente: [`docs/API.md`](docs/API.md).
 - [x] PR 1 — Integridade editorial (modelos, validação, frescor do status, notícias verificadas)
 - [x] PR 2 — Enquete real local (Worker + D1, voto diário)
 - [x] PR 3 — Staging Cloudflare (config, headers/CSP, guardas, CI, docs; falta só você criar os recursos: `docs/DEPLOY.md`)
-- [ ] PR 4 — Produção
+- [~] PR 4 — Produção (pronto no código: privacidade, retenção de 72 h, OG neutro, sitemap/canonical, workflow de deploy; falta domínio/go-live)

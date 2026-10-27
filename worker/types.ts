@@ -5,7 +5,11 @@ export interface D1Statement {
   all<T = unknown>(): Promise<{ results: T[] }>;
   run(): Promise<unknown>;
 }
-export interface D1Like { prepare(sql: string): D1Statement }
+export interface D1Like {
+  prepare(sql: string): D1Statement;
+  /** Runs the statements in order inside one transaction (D1 guarantees all-or-nothing). */
+  batch(statements: D1Statement[]): Promise<unknown[]>;
+}
 export interface RateLimiter { limit(options: { key: string }): Promise<{ success: boolean }> }
 
 export interface Env {

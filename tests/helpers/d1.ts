@@ -10,7 +10,12 @@ export function makeD1(db: DatabaseSync): D1Like {
     all: async <T>() => ({ results: db.prepare(sql).all(...(args as never[])) as T[] }),
     run: async () => { db.prepare(sql).run(...(args as never[])); return { success: true }; },
   });
-  return { prepare: (sql) => stmt(sql) };
+  const batch = async (stmts: D1Statement[]) => {
+    db.exec('BEGIN');
+    try { const out = []; for (const st of stmts) out.push(await st.run()); db.exec('COMMIT'); return out; }
+    catch (e) { db.exec('ROLLBACK'); throw e; }
+  };
+  return { prepare: (sql) => stmt(sql), batch };
 }
 
 export const SECRET = 'test-secret-test-secret-test-secret-0123456789';
@@ -19,6 +24,7 @@ export const POLL_ID = 'staging-arrest-by-2027-10-27';
 export function makeEnv(over: Partial<Env> = {}) {
   const raw = new DatabaseSync(':memory:');
   raw.exec(readFileSync(new URL('../../migrations/0001_init.sql', import.meta.url), 'utf8'));
+  raw.exec(readFileSync(new URL('../../migrations/0002_day_totals.sql', import.meta.url), 'utf8'));
   raw.exec(readFileSync(new URL('../../seeds/staging.sql', import.meta.url), 'utf8'));
   const env: Env = { DB: makeD1(raw), ASSETS: { fetch: async () => new Response('asset') }, VOTER_HMAC_SECRET: SECRET, ...over };
   return { env, raw };

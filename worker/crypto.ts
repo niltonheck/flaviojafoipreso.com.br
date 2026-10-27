@@ -24,8 +24,11 @@ export async function verifyVoterCookie(secret: string, value: string | undefine
   const dot = value.indexOf('.');
   if (dot < 1) return null;
   const id = value.slice(0, dot);
+  const sig = value.slice(dot + 1);
   try {
-    const ok = await crypto.subtle.verify('HMAC', await key(secret, 'verify'), fromB64url(value.slice(dot + 1)), enc.encode(`cookie:${id}`));
+    const bytes = fromB64url(sig);
+    if (b64url(bytes) !== sig) return null; // canonical encoding only: one valid spelling per signature
+    const ok = await crypto.subtle.verify('HMAC', await key(secret, 'verify'), bytes, enc.encode(`cookie:${id}`));
     return ok ? id : null;
   } catch {
     return null;

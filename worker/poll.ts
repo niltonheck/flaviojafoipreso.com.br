@@ -35,6 +35,13 @@ export async function tally(db: D1Like, pollId: string, day: string | null): Pro
   const { results } = await stmt.all<{ choice: Choice; n: number }>();
   const t: Tally = { yes: 0, no: 0 };
   for (const r of results) t[r.choice] = Number(r.n);
+  if (day === null) {
+    // Whole poll: days already rolled up live in poll_day_totals; add them to the not-yet-purged votes.
+    const rolled = await db.prepare('SELECT COALESCE(SUM(yes), 0) AS yes, COALESCE(SUM(no), 0) AS no FROM poll_day_totals WHERE poll_id = ?')
+      .bind(pollId).first<{ yes: number; no: number }>();
+    t.yes += Number(rolled?.yes ?? 0);
+    t.no += Number(rolled?.no ?? 0);
+  }
   return t;
 }
 

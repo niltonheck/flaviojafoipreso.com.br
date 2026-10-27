@@ -7,6 +7,9 @@ import '../styles/global.css';
 interface Props { title: string; description: string }
 const { title, description } = Astro.props;
 const cfg = resolveConfig(import.meta.env);
+// Absolute URLs come from `site` in astro.config.mjs. Canonical only in production; staging/demo are noindex.
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const image = new URL('/og-image.png', Astro.site).href;
 ---
 <!doctype html>
 <html lang="pt-BR">
@@ -18,6 +21,18 @@ const cfg = resolveConfig(import.meta.env);
     <meta name="theme-color" content="#fafaf7" />
     {cfg.mode !== 'production' && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {cfg.mode === 'production' && <link rel="canonical" href={canonical} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Flávio Já Foi Preso?" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Flávio Já Foi Preso? Sátira política." />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body class="hero-page">
     {cfg.mode === 'staging' && <div class="env-banner" role="note">Ambiente de teste — enquete de teste, não é o site oficial</div>}

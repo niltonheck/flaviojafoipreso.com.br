@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { buildHeaders, buildRobots, csp, inlineScriptHashes } from '../scripts/lib/headers.ts';
+import { buildHeaders, buildRobots, buildSitemap, csp, inlineScriptHashes } from '../scripts/lib/headers.ts';
 
 const hash = (s: string) => `'sha256-${createHash('sha256').update(s).digest('base64')}'`;
 
@@ -52,5 +52,16 @@ describe('buildRobots', () => {
     const r = buildRobots('production');
     expect(r).toContain('Allow: /');
     expect(r).toContain('Disallow: /api/');
+    expect(r).toContain('Sitemap: https://flaviojafoipreso.com.br/sitemap.xml');
+    expect(buildRobots('staging')).not.toContain('Sitemap');
+  });
+  it('builds a sitemap with absolute URLs', () => {
+    const x = buildSitemap(['/', '/privacidade/'], '2026-10-27');
+    expect(x).toContain('<loc>https://flaviojafoipreso.com.br/</loc>');
+    expect(x).toContain('<loc>https://flaviojafoipreso.com.br/privacidade/</loc>');
+  });
+  it('never emits a double slash, whatever the input path looks like', () => {
+    const x = buildSitemap(['//', '/', 'privacidade/', '//privacidade/'], '2026-10-27');
+    expect(x).not.toMatch(/\.br\/\//);
   });
 });

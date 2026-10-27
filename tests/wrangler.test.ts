@@ -24,6 +24,10 @@ describe('wrangler.jsonc', () => {
     expect(cfg.env.production.routes[0].custom_domain).toBe(true);
   });
 
+  it('schedules the retention job in every environment', () => {
+    for (const env of [cfg, cfg.env.staging, cfg.env.production]) expect(env.triggers.crons).toEqual(['0 5 * * *']);
+  });
+
   it('contains no secrets: the HMAC secret is a Worker secret, never in config', () => {
     expect(JSON.stringify(cfg)).not.toMatch(/VOTER_HMAC_SECRET|api[_-]?token/i);
   });
@@ -44,6 +48,12 @@ describe('wrangler.jsonc', () => {
   it('keeps production blocked until it has its own database (PR 4)', () => {
     expect(cfg.env.production.d1_databases[0].database_id).toMatch(/^REPLACE_/);
     expect(guard('production').status).toBe(1);
+  });
+
+  it('refuses a production release when the placeholder bypass flag is set', () => {
+    const r = spawnSync('node', ['scripts/check-wrangler.ts', 'production'], { encoding: 'utf8', cwd: new URL('..', import.meta.url).pathname, env: { ...process.env, ALLOW_PLACEHOLDERS: '1' } });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/ALLOW_PLACEHOLDERS/);
   });
 
   it('rejects unknown environments', () => expect(guard('qa').status).toBe(1));

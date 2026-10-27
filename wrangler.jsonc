@@ -11,6 +11,8 @@
     "run_worker_first": ["/api/*"]
   },
   "observability": { "enabled": true },
+  // Daily retention job at 02:00 Brasília (05:00 UTC): rolls finished days into totals and deletes voter codes.
+  "triggers": { "crons": ["0 5 * * *"] },
   "d1_databases": [
     {
       "binding": "DB",
@@ -30,6 +32,7 @@
       "workers_dev": true,
       "preview_urls": false,
       "observability": { "enabled": true },
+      "triggers": { "crons": ["0 5 * * *"] },
       "d1_databases": [
         {
           "binding": "DB",
@@ -51,6 +54,7 @@
       "preview_urls": false,
       "routes": [{ "pattern": "flaviojafoipreso.com.br", "custom_domain": true }],
       "observability": { "enabled": true },
+      "triggers": { "crons": ["0 5 * * *"] },
       "d1_databases": [
         {
           "binding": "DB",

@@ -92,9 +92,42 @@ the Cloudflare dashboard (Caching → Purge) and re-run the smoke test. Status c
 - [ ] Write down the current quotas you verified and the date, here or in your notes.
 - [ ] After each editorial deploy: run the smoke test and eyeball the status/news on the live URL.
 
-## Production (PR 4)
+## Production
 
-`env.production` already exists in `wrangler.jsonc` (custom domain `flaviojafoipreso.com.br` assumed; confirm),
-but it has no deploy script on purpose. PR 4 adds: its own D1 and secret, the zone on Cloudflare, `www` → apex
-via a Cloudflare Redirect Rule (the Worker only runs for `/api/*`, so the redirect belongs in the dashboard),
-privacy notice, neutral social image, retention job, and a production deploy workflow with manual approval.
+`env.production` exists in `wrangler.jsonc` (custom domain `flaviojafoipreso.com.br`, off `workers.dev`, its own D1
+and secret, daily retention cron). Nothing is created or deployed until you do the steps below.
+
+### Prerequisites (you)
+1. **Put the domain on Cloudflare.** `flaviojafoipreso.com.br` currently uses Registro.br's default nameservers
+   (`a.auto.dns.br`, `b.auto.dns.br`) and has no records. In Cloudflare: Add a site → copy the two nameservers it gives
+   you → in Registro.br, change the domain's DNS servers to those. Wait until Cloudflare shows the zone as Active.
+   (`.com.br` supports DNSSEC: if it is enabled at Registro.br, follow Cloudflare's DNSSEC steps or disable it before
+   switching, otherwise the domain can stop resolving.)
+2. **Privacy contact must exist.** Enable Cloudflare **Email Routing** and create `privacidade@flaviojafoipreso.com.br`
+   forwarding to an inbox you read, then set `"contactEmailConfirmed": true` in `src/data/site.json`. The production
+   build refuses to run until you do.
+3. **Token permissions.** The OAuth login used so far may lack zone/DNS scopes. If `wrangler deploy` cannot attach the
+   custom domain, create an API token with Workers Scripts:Edit, D1:Edit, Zone:Read and Workers Routes/Custom
+   Domains permissions, and use it as `CLOUDFLARE_API_TOKEN`.
+4. **Legal review** of `/privacidade` (it is a draft).
+
+### Go-live (once, in order)
+```bash
+npx wrangler d1 create fjfp-production      # paste the id into env.production in wrangler.jsonc, commit
+npm run db:migrate:production               # schema (both migrations)
+npm run db:seed:production                  # the real poll
+openssl rand -hex 32 | npx wrangler secret put VOTER_HMAC_SECRET --env production   # a NEW secret, not staging's
+npm run deploy:production                   # guards -> production build -> deploy (attaches the custom domain)
+npm run health:production                   # smoke test against the live domain
+```
+Then add a **Redirect Rule** in Cloudflare (Rules → Redirect Rules): `www.flaviojafoipreso.com.br/*` →
+`https://flaviojafoipreso.com.br/${1}`, 301, plus a proxied DNS record for `www` so the rule can fire.
+Afterwards check: `curl -sI https://www.flaviojafoipreso.com.br` redirects; the page is indexable (no `noindex`);
+`/privacidade` loads; one real test vote works and is then removed if you do not want it counted
+(`wrangler d1 execute DB --env production --remote --command "DELETE FROM votes"` before announcing).
+
+Later releases use the manual **Deploy production** GitHub workflow (reviewer approval + typing `DEPLOY`).
+
+### Cron check
+After the first production deploy, confirm the retention trigger is registered (Workers & Pages → Worker →
+Settings → Triggers → Cron) and look at its first run's logs next morning: it should print only a date and a count.

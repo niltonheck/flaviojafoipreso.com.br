@@ -53,6 +53,17 @@ export function buildHeaders(mode: Mode, scriptHashes: string[]): string {
   ].join('\n');
 }
 
+export const SITE = 'https://flaviojafoipreso.com.br';
+
 export function buildRobots(mode: Mode): string {
-  return mode === 'production' ? 'User-agent: *\nAllow: /\nDisallow: /api/\n' : 'User-agent: *\nDisallow: /\n';
+  return mode === 'production'
+    ? `User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: ${SITE}/sitemap.xml\n`
+    : 'User-agent: *\nDisallow: /\n';
+}
+
+/** Two static pages; a sitemap is only emitted for production. */
+export function buildSitemap(paths: string[], lastmod: string): string {
+  const clean = (p: string) => `/${p.replace(/^\/+/, '')}`; // exactly one leading slash
+  const urls = paths.map((p) => `  <url><loc>${SITE}${clean(p)}</loc><lastmod>${lastmod}</lastmod></url>`).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }

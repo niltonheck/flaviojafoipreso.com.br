@@ -33,8 +33,17 @@ describe('GET /api/polls/current', () => {
     const { call, visit } = await setup();
     const { cookie } = await visit();
     expect((await call(get('/api/polls/current', { headers: { cookie } }))).headers.get('set-cookie')).toBeNull();
-    const forged = cookie.replace(/.$/, (c) => (c === 'A' ? 'B' : 'A'));
-    expect((await call(get('/api/polls/current', { headers: { cookie: forged } }))).headers.get('set-cookie')).not.toBeNull();
+    const flip = (c: string) => (c === 'A' ? 'B' : 'A');
+    const [name, val] = cookie.split('=');
+    const [id, sig] = val.split('.');
+    const variants = [
+      `${name}=${flip(id[0])}${id.slice(1)}.${sig}`, // tampered id
+      `${name}=${id}.${sig[0] === 'A' ? 'B' : 'A'}${sig.slice(1)}`, // tampered first signature char
+      `${name}=${id}.${sig.slice(0, -1)}${sig.endsWith('A') ? 'B' : 'A'}`, // last char: same bytes in a non-canonical spelling
+    ];
+    for (const forged of variants) {
+      expect((await call(get('/api/polls/current', { headers: { cookie: forged } }))).headers.get('set-cookie')).not.toBeNull();
+    }
   });
 
   it('omits Secure on plain http (local dev)', async () => {

@@ -1,0 +1,45 @@
+name: Deploy production
+
+# Manual only, and doubly gated:
+#  1. GitHub environment "production" must have Required reviewers (Settings -> Environments).
+#  2. You must type DEPLOY in the confirmation input.
+# Needs environment secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID and variable PRODUCTION_URL.
+# This workflow never sets ALLOW_PLACEHOLDERS, so the build fails if the privacy contact is not confirmed.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type DEPLOY to publish to the real site'
+        required: true
+      apply_migrations:
+        description: "Apply pending D1 migrations to PRODUCTION first (take a backup export before schema changes)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency: deploy-production
+
+jobs:
+  deploy:
+    if: ${{ inputs.confirm == 'DEPLOY' }}
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Migrations (explicit, opt-in)
+        if: ${{ inputs.apply_migrations }}
+        run: npm run db:migrate:production
+      - run: npm run deploy:production
+      - name: Smoke test
+        run: npm run health:production
