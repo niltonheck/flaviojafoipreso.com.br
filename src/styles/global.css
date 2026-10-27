@@ -27,6 +27,9 @@ a { color: inherit; }
 
 .shell { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
 
+/* staging-only banner so a test deploy can never be mistaken for the real site */
+.env-banner { background: var(--text); color: #fff; text-align: center; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 6px 12px; }
+
 /* ---------- header ---------- */
 .site-header { display: flex; justify-content: space-between; align-items: center; height: 64px; }
 .wordmark { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; letter-spacing: .12em; font-size: .8rem; text-decoration: none; }

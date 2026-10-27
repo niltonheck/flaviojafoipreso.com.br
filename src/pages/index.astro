@@ -18,9 +18,11 @@ const demo = c.mode === 'demo';
     <title>Flávio Já Foi Preso? — Sátira política</title>
     <meta name="description" content="Flávio Bolsonaro já foi preso? Site de sátira política com uma resposta simples e um Presômetro informal. Não é fonte oficial." />
     <meta name="theme-color" content="#fafaf7" />
+    {c.mode !== 'production' && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="hero-page">
+    {c.mode === 'staging' && <div class="env-banner" role="note">Ambiente de teste — dados fictícios, não é o site oficial</div>}
     <a class="skip" href="#conteudo">Pular para o conteúdo</a>
     <div class="shell">
       <SiteHeader />
@@ -31,7 +33,7 @@ const demo = c.mode === 'demo';
           <NewsList items={c.news} demo={demo} />
         </div>
       </main>
-      <SiteFooter demo={demo} maxAgeHours={c.statusMaxAgeHours} />
+      <SiteFooter demo={demo} maxAgeHours={c.statusMaxAgeHours} pollMode={c.pollMode} />
     </div>
   </body>
 </html>

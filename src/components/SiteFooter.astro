@@ -1,6 +1,6 @@
 ---
-interface Props { demo: boolean; maxAgeHours: number }
-const { demo, maxAgeHours } = Astro.props;
+interface Props { demo: boolean; maxAgeHours: number; pollMode: 'mock' | 'api' }
+const { demo, maxAgeHours, pollMode } = Astro.props;
 ---
 <footer class="site-footer" id="sobre">
   <div class="site-footer__col">
@@ -22,6 +22,8 @@ const { demo, maxAgeHours } = Astro.props;
   </div>
   <div class="site-footer__col">
     <p class="site-footer__lead"><strong>Presômetro</strong></p>
-    <p>Enquete informal e simulada, sem valor estatístico. Nenhum voto é enviado ou contado publicamente.</p>
+    {pollMode === 'mock'
+      ? <p>Enquete informal e simulada, sem valor estatístico. Nenhum voto é enviado ou contado publicamente.</p>
+      : <p>Enquete informal, voluntária e não científica. Para limitar a um voto por dia por navegador, guardamos um identificador anônimo em um cookie; não há contas nem rastreamento de terceiros.</p>}
   </div>
 </footer>

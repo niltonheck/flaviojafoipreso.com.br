@@ -73,7 +73,7 @@ const yesPct = total ? Math.round((counts.yes / total) * 100) : 0;
       const { MockPollRepository } = await import('../lib/mockPollRepository');
       repo = new MockPollRepository(seed);
     } else {
-      repo = new ApiPollRepository({ pollId: seed.id });
+      repo = new ApiPollRepository(); // poll id always comes from the server
     }
 
     const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;

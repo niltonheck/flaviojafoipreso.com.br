@@ -155,6 +155,15 @@ export function createApi(deps: ApiDeps = {}) {
       if (!url.pathname.startsWith('/api/')) return null;
       const path = url.pathname.replace(/\/+$/, '');
 
+      if (path === '/api/health') {
+        if (request.method !== 'GET') return fail(405, 'method_not_allowed', { allow: 'GET' });
+        try {
+          await env.DB.prepare('SELECT 1 AS ok').first(); // proves the D1 binding works; says nothing else
+          return json(200, { ok: true });
+        } catch (e) {
+          return unavailable('health', e);
+        }
+      }
       if (path === '/api/polls/current') {
         return request.method === 'GET' ? getCurrent(request, env) : fail(405, 'method_not_allowed', { allow: 'GET' });
       }

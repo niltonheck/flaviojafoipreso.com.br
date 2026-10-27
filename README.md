@@ -1,8 +1,8 @@
 # Flávio Já Foi Preso?
 
 Site de sátira política (Astro, static, TypeScript, CSS puro). Layout escolhido: **Minimalist Hero**.
-Especificações em `specs/` (A = visual, C = engenharia de produção). Status atual: **Fase 0, PR 1 e PR 2**
-(enquete real com Worker + D1, local); staging e produção ainda não existem.
+Especificações em `specs/` (A = visual, C = engenharia de produção). Status atual: **Fase 0, PR 1, PR 2 e PR 3**
+(código pronto para staging; nada foi publicado ainda). Produção é o PR 4.
 
 ## Rodar
 
@@ -11,6 +11,7 @@ npm install
 npm run dev            # modo demo: conteúdo fictício + enquete simulada (sem rede)
 npm test               # vitest
 npm run validate       # integridade do conteúdo (também roda no build)
+npm run build:staging  # staging (noindex, banner de teste)
 npm run build          # PRODUÇÃO: só conteúdo real, sem mock; falha se algo for inválido
 npm run build:demo     # build estático em modo demo
 npm run preview
@@ -31,8 +32,10 @@ src/data/fixtures/demo/            conteúdo fictício (só no modo demo)
 scripts/                           validate-content, editor (news:add, status:set), check-dist
 tests/                             vitest
 docs/EDITORIAL.md                  checklist e procedimento de correção
+docs/API.md · docs/DEPLOY.md       contrato da enquete · deploy, rollback e monitoramento
 src/lib/                     tipos, config, status (frescor), news, validate, PollRepository (mock + API)
 worker/                      Cloudflare Worker (API /api/*), migrations/, seeds/, wrangler.jsonc
+.github/workflows/           ci.yml (PRs) e deploy-staging.yml (manual)
 src/styles/global.css
 public/images/               portrait-320.webp, portrait-480.webp
 assets-src/                  fontes originais, NÃO publicadas (portrait-source.png)
@@ -52,5 +55,5 @@ como rodar localmente: [`docs/API.md`](docs/API.md).
 - [x] Fase 0 — Git, limpeza, rota `/`, pipeline do retrato
 - [x] PR 1 — Integridade editorial (modelos, validação, frescor do status, notícias verificadas)
 - [x] PR 2 — Enquete real local (Worker + D1, voto diário)
-- [ ] PR 3 — Staging Cloudflare
+- [x] PR 3 — Staging Cloudflare (config, headers/CSP, guardas, CI, docs; falta só você criar os recursos: `docs/DEPLOY.md`)
 - [ ] PR 4 — Produção

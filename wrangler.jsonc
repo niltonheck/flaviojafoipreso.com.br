@@ -1,6 +1,6 @@
 {
-  // Local/dev configuration. Staging and production environments (separate D1 databases,
-  // secrets and routes) are added in PR 3.
+  // Top level = LOCAL development (`wrangler dev`, local D1). See docs/DEPLOY.md.
+  // Named environments do not inherit bindings, so staging/production repeat them explicitly.
   "name": "flaviojafoipreso",
   "main": "worker/index.ts",
   "compatibility_date": "2026-01-01",
@@ -10,6 +10,7 @@
     // Only the poll API runs Worker code; everything else is served straight from the CDN.
     "run_worker_first": ["/api/*"]
   },
+  "observability": { "enabled": true },
   "d1_databases": [
     {
       "binding": "DB",
@@ -18,8 +19,49 @@
       "migrations_dir": "migrations"
     }
   ],
-  // Per-IP and per-voter vote limits. Verify quotas/pricing at deploy time (SPEC C §7).
   "ratelimits": [
     { "name": "VOTE_LIMITER", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } }
-  ]
+  ],
+
+  "env": {
+    // Non-public test deployment on workers.dev: fake poll id, noindex, test banner, its own D1.
+    "staging": {
+      "name": "flaviojafoipreso-staging",
+      "workers_dev": true,
+      "preview_urls": false,
+      "observability": { "enabled": true },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "fjfp-staging",
+          "database_id": "REPLACE_WITH_STAGING_D1_ID",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "ratelimits": [
+        { "name": "VOTE_LIMITER", "namespace_id": "2001", "simple": { "limit": 20, "period": 60 } }
+      ]
+    },
+
+    // Real site. Domain assumption: apex flaviojafoipreso.com.br (www redirects to it via a Cloudflare
+    // Redirect Rule, see docs/DEPLOY.md). Deployment scripts for this environment arrive in PR 4.
+    "production": {
+      "name": "flaviojafoipreso",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [{ "pattern": "flaviojafoipreso.com.br", "custom_domain": true }],
+      "observability": { "enabled": true },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "fjfp-production",
+          "database_id": "REPLACE_WITH_PRODUCTION_D1_ID",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "ratelimits": [
+        { "name": "VOTE_LIMITER", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } }
+      ]
+    }
+  }
 }

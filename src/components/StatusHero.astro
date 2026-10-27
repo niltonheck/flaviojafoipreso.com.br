@@ -34,7 +34,7 @@ const NOTE: Record<string, string> = {
       width="480"
       height="440"
       decoding="async"
-      onerror="this.parentElement.hidden=true"
+      data-portrait
     />
   </div>
   <h1 id="pergunta" class="hero__question">Flávio Bolsonaro já foi preso?</h1>
@@ -71,6 +71,14 @@ const NOTE: Record<string, string> = {
 <script>
   // Freshness guard (SPEC C §3): the static HTML cannot age itself, so re-check in the browser.
   import { ANSWER_TEXT, resolveStatus } from '../lib/status';
+
+  // A missing portrait must not break the layout (no inline handlers: the CSP forbids them).
+  const img = document.querySelector<HTMLImageElement>('img[data-portrait]');
+  const hidePortrait = () => { img!.parentElement!.hidden = true; };
+  if (img) {
+    if (img.complete && img.naturalWidth === 0) hidePortrait();
+    else img.addEventListener('error', hidePortrait, { once: true });
+  }
 
   const hero = document.querySelector<HTMLElement>('.hero[data-declared-status]');
   if (hero) {

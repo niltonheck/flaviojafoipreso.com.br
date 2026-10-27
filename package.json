@@ -7,9 +7,9 @@
     "dev": "astro dev --mode demo",
     "validate": "node scripts/validate-content.ts",
     "test": "vitest run",
-    "build": "npm run validate && astro check && astro build --mode production && node scripts/check-dist.ts production",
-    "build:demo": "npm run validate && astro check && astro build --mode demo && node scripts/check-dist.ts demo",
-    "build:staging": "npm run validate && astro check && astro build --mode staging && node scripts/check-dist.ts staging",
+    "build": "npm run validate && astro check && astro build --mode production && node scripts/postbuild.ts production && node scripts/check-dist.ts production",
+    "build:demo": "npm run validate && astro check && astro build --mode demo && node scripts/postbuild.ts demo && node scripts/check-dist.ts demo",
+    "build:staging": "npm run validate && astro check && astro build --mode staging && node scripts/postbuild.ts staging && node scripts/check-dist.ts staging",
     "preview": "astro preview",
     "check": "astro check",
     "news:add": "node scripts/editor.ts news",
@@ -18,7 +18,12 @@
     "db:seed:local": "wrangler d1 execute DB --local --file=seeds/staging.sql",
     "db:reset:local": "rm -rf .wrangler/state/v3/d1 && npm run db:migrate:local && npm run db:seed:local",
     "build:api-demo": "PUBLIC_POLL_MODE=api npm run build:demo",
-    "preview:api": "npm run build:api-demo && wrangler dev --port 8787"
+    "preview:api": "npm run build:api-demo && wrangler dev --port 8787",
+    "check:wrangler": "node scripts/check-wrangler.ts",
+    "deploy:staging": "npm run check:wrangler -- staging && npm run build:staging && wrangler deploy --env staging",
+    "db:migrate:staging": "npm run check:wrangler -- staging && wrangler d1 migrations apply DB --env staging --remote",
+    "db:seed:staging": "npm run check:wrangler -- staging && wrangler d1 execute DB --env staging --remote --file=seeds/staging.sql",
+    "health:staging": "node scripts/health.ts"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.12",

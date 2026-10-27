@@ -261,3 +261,25 @@ describe('failure modes', () => {
     for (const t of texts) expect(t).not.toContain(SECRET);
   });
 });
+
+describe('GET /api/health', () => {
+  it('is 200 {ok:true} with no store and no internals when D1 answers', async () => {
+    const { call } = await setup();
+    const res = await call(get('/api/health'));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('cache-control')).toBe('private, no-store');
+    expect(await res.json()).toEqual({ ok: true });
+  });
+  it('is a generic 503 when D1 is down', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { api, env } = await setup();
+    const res = (await api.handle(get('/api/health'), { ...env, DB: { prepare: () => { throw new Error('D1_ERROR internals'); } } as never }))!;
+    expect(res.status).toBe(503);
+    expect(await res.text()).not.toMatch(/internals/);
+    err.mockRestore();
+  });
+  it('rejects other methods', async () => {
+    const { call } = await setup();
+    expect((await call(new Request(`${ORIGIN}/api/health`, { method: 'POST' }))).status).toBe(405);
+  });
+});
