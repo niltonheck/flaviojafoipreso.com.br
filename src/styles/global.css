@@ -33,7 +33,7 @@ a { color: inherit; }
 /* ---------- header ---------- */
 .site-header { display: flex; justify-content: space-between; align-items: center; height: 64px; }
 .wordmark { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; letter-spacing: .12em; font-size: .8rem; text-decoration: none; }
-.wordmark__q { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; background: var(--red); color: #fff; font-size: .95rem; letter-spacing: 0; }
+.wordmark__avatar { display: block; width: 32px; height: 32px; border-radius: 50%; background: #fbe3e2; object-fit: cover; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--border); }
 .about-link { font-size: .875rem; color: var(--muted); text-decoration: none; padding: 12px 0 12px 16px; min-height: 44px; display: inline-flex; align-items: center; }
 .about-link:hover { color: var(--text); text-decoration: underline; }
 
