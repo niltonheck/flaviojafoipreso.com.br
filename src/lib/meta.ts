@@ -6,7 +6,7 @@ const decode = (s: string) =>
 
 function meta(html: string, key: string): string | null {
   for (const tag of html.match(/<meta\b[^>]*>/gi) ?? []) {
-    const k = /(?:property|name)\s*=\s*["']([^"']+)["']/i.exec(tag)?.[1];
+    const k = /(?:property|name|itemprop)\s*=\s*["']([^"']+)["']/i.exec(tag)?.[1];
     if (k?.toLowerCase() !== key) continue;
     const c = /content\s*=\s*"([^"]*)"|content\s*=\s*'([^']*)'/i.exec(tag);
     const v = c?.[1] ?? c?.[2];
@@ -15,14 +15,46 @@ function meta(html: string, key: string): string | null {
   return null;
 }
 
-/** Best-effort read of a page's own metadata, to pre-fill an editor's entry. Never a source of truth. */
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Makes a scraped timestamp valid ISO 8601 with a zone. Values without a zone ("2026-10-27 11:19:00",
+ * as Folha publishes) are Brasília time on these sites, so they get -03:00; anything else is returned as-is.
+ */
+export function normalizeTimestamp(raw: string | null): string | null {
+  if (!raw) return raw;
+  const m = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)$/.exec(raw.trim());
+  return m ? `${m[1]}T${m[2]}-03:00` : raw.trim();
+}
+
+/** Calendar day (YYYY-MM-DD) in Brasília time. Date-only inputs are returned as-is. */
+export function brasiliaDay(iso: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date(iso));
+  const g = (t: string) => parts.find((p) => p.type === t)!.value;
+  return `${g('year')}-${g('month')}-${g('day')}`;
+}
+
+/** Drops a trailing " | G1" / " - Folha" style suffix that sites append to og:title. */
+export function cleanTitle(title: string | null, siteName: string | null): string | null {
+  if (!title || !siteName) return title;
+  return title.replace(new RegExp(`\\s*[|\u2013\u2014-]\\s*${escapeRe(siteName)}\\s*$`, 'i'), '').trim() || title;
+}
+
+/**
+ * Best-effort read of a page's own metadata, to pre-fill an editor's entry. Never a source of truth.
+ * Date sources, in order: article:published_time, itemprop=datePublished (G1), JSON-LD datePublished,
+ * then the first "published_at" in the page JSON (Estadão).
+ */
 export function parseMeta(html: string): PageMeta {
   const ld = /"datePublished"\s*:\s*"([^"]+)"/.exec(html)?.[1] ?? null;
+  const pageJson = /"published_at"\s*:\s*"([^"]+)"/.exec(html)?.[1] ?? null;
   const titleTag = /<title[^>]*>([^<]*)<\/title>/i.exec(html)?.[1];
+  const siteName = meta(html, 'og:site_name');
   return {
-    title: meta(html, 'og:title') ?? meta(html, 'twitter:title') ?? (titleTag ? decode(titleTag) : null),
-    siteName: meta(html, 'og:site_name'),
-    publishedAt: meta(html, 'article:published_time') ?? ld,
+    title: cleanTitle(meta(html, 'og:title') ?? meta(html, 'twitter:title') ?? (titleTag ? decode(titleTag) : null), siteName),
+    siteName,
+    publishedAt: normalizeTimestamp(meta(html, 'article:published_time') ?? meta(html, 'datepublished') ?? ld ?? pageJson),
     description: meta(html, 'og:description') ?? meta(html, 'description'),
   };
 }

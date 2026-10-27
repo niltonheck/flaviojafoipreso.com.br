@@ -1,12 +1,13 @@
 // Editor helper (SPEC C §3/§4): you pick the story, this fills in the boilerplate.
 // It never decides what is true and never runs automatically; a human runs it and reviews the diff.
+//   (keeps the page's full publication timestamp so same-day stories sort correctly)
 //   npm run news:add -- <url> [--headline "…"] [--publisher "…"] [--date YYYY-MM-DD] [--summary "…"] [--dry-run]
 //   npm run status:set -- <yes|no|unverified> [--source <url>]… [--note "…"] [--dry-run]
 //   "no" needs no sources (just the check time); "yes" requires at least one trusted source.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { EDITOR } from '../src/lib/config.ts';
-import { parseMeta } from '../src/lib/meta.ts';
+import { brasiliaDay, parseMeta } from '../src/lib/meta.ts';
 import { isTrustedHost, validateNews, validateStatus } from '../src/lib/validate.ts';
 import type { NewsItem, Source, StatusRecord } from '../src/lib/types.ts';
 
@@ -56,9 +57,9 @@ if (cmd === 'news') {
   const items: NewsItem[] = read('src/data/news.json');
   if (items.some((n) => n.source.url === url)) die('essa URL já está em news.json');
   const headline = values.headline ?? meta?.title ?? die('não achei o título; use --headline');
-  const publishedAt = values.date ?? meta?.publishedAt?.slice(0, 10) ?? die('não achei a data de publicação; use --date YYYY-MM-DD');
+  const publishedAt = values.date ?? meta?.publishedAt ?? die('não achei a data de publicação; use --date YYYY-MM-DD');
   const item: NewsItem = {
-    id: `${publishedAt}-${slug(headline)}`,
+    id: `${brasiliaDay(publishedAt)}-${slug(headline)}`,
     headline,
     ...((values.summary ?? meta?.description) ? { summary: values.summary ?? meta?.description ?? undefined } : {}),
     publishedAt,
@@ -85,7 +86,7 @@ if (cmd === 'news') {
         title: meta?.title ?? die(`não achei o título de ${s}`),
         publisher: meta?.siteName ?? publisherFrom(new URL(url).hostname),
         url,
-        publishedAt: meta?.publishedAt?.slice(0, 10) ?? die(`não achei a data de ${s}; edite status.json manualmente`),
+        publishedAt: meta?.publishedAt ?? die(`não achei a data de ${s}; edite status.json manualmente`),
         accessedAt: nowBrasilia(),
       });
     }
