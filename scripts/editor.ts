@@ -2,6 +2,7 @@
 // It never decides what is true and never runs automatically; a human runs it and reviews the diff.
 //   npm run news:add -- <url> [--headline "…"] [--publisher "…"] [--date YYYY-MM-DD] [--summary "…"] [--dry-run]
 //   npm run status:set -- <yes|no|unverified> [--source <url>]… [--note "…"] [--dry-run]
+//   "no" needs no sources (just the check time); "yes" requires at least one trusted source.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { EDITOR } from '../src/lib/config.ts';
@@ -41,7 +42,7 @@ function finish(label: string, path: string, data: unknown, issues: { level: str
   if (issues.some((i) => i.level === 'error')) die('entrada inválida; nada foi gravado.');
   if (dry) return console.log('\n(dry-run: nada foi gravado)');
   writeFileSync(file(path), JSON.stringify(data, null, 2) + '\n');
-  console.log(`\n✔ ${label} gravado em ${path}. Revise o diff e abra um PR.`);
+  console.log(`\n✔ ${label} gravado em ${path}. Revise o diff (git diff), faça commit e publique.`);
 }
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -74,7 +75,8 @@ if (cmd === 'news') {
   const status = positionals[0] as StatusRecord['status'];
   if (!['yes', 'no', 'unverified'].includes(status)) die('uso: npm run status:set -- <yes|no|unverified> [--source <url>]… [--note "…"]');
   const prev: StatusRecord = read('src/data/status.json');
-  let evidence: Source[] = prev.evidence;
+  // Only reuse previous sources when the status is unchanged (never carry "yes" evidence over to "no").
+  let evidence: Source[] = prev.status === status ? prev.evidence : [];
   if (values.source?.length) {
     evidence = [];
     for (const s of values.source) {
@@ -87,8 +89,8 @@ if (cmd === 'news') {
         accessedAt: nowBrasilia(),
       });
     }
-  } else if (status !== 'unverified' && evidence.length) {
-    console.warn(`⚠ reutilizando ${evidence.length} fonte(s) anteriores. Confirme que ainda sustentam "${status}".`);
+  } else if (status === 'yes' && evidence.length) {
+    console.warn(`⚠ reutilizando ${evidence.length} fonte(s) anteriores. Confirme que ainda sustentam "yes".`);
   }
   const next: StatusRecord = {
     subject: 'flavio-bolsonaro', status, checkedAt: status === 'unverified' && !values.source ? null : nowBrasilia(),

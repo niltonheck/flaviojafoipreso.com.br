@@ -28,12 +28,22 @@ describe('wrangler.jsonc', () => {
     expect(JSON.stringify(cfg)).not.toMatch(/VOTER_HMAC_SECRET|api[_-]?token/i);
   });
 
-  it('blocks deploys while D1 ids are placeholders', () => {
-    for (const env of ['staging', 'production']) {
+  it('blocks deploys of any environment whose D1 id is still a placeholder, and allows configured ones', () => {
+    for (const env of ['staging', 'production'] as const) {
+      const placeholder = !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(cfg.env[env].d1_databases[0].database_id);
       const r = guard(env);
-      expect(r.status).toBe(1);
-      expect(r.stderr).toMatch(/placeholder/);
+      if (placeholder) {
+        expect(r.status).toBe(1);
+        expect(r.stderr).toMatch(/placeholder/);
+      } else {
+        expect(r.status).toBe(0);
+      }
     }
+  });
+
+  it('keeps production blocked until it has its own database (PR 4)', () => {
+    expect(cfg.env.production.d1_databases[0].database_id).toMatch(/^REPLACE_/);
+    expect(guard('production').status).toBe(1);
   });
 
   it('rejects unknown environments', () => expect(guard('qa').status).toBe(1));

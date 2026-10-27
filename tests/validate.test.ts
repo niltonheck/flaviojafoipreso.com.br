@@ -20,8 +20,14 @@ describe('validateStatus', () => {
     expect(errors(validateStatus(status({ status: 'unverified', checkedAt: null, evidence: [] }), strict))).toEqual([]));
   it.each(['yes', 'no'] as const)('rejects %s without checkedAt', (s) =>
     expect(errors(validateStatus(status({ status: s, checkedAt: null }), strict)).length).toBeGreaterThan(0));
-  it.each(['yes', 'no'] as const)('rejects %s without evidence', (s) =>
-    expect(errors(validateStatus(status({ status: s, evidence: [] }), strict)).length).toBeGreaterThan(0));
+  it('rejects "yes" without evidence', () =>
+    expect(errors(validateStatus(status({ status: 'yes', evidence: [] }), strict)).length).toBeGreaterThan(0));
+  it('accepts "no" with a fresh check and no sources', () =>
+    expect(errors(validateStatus(status({ status: 'no', evidence: [] }), strict))).toEqual([]));
+  it('still validates sources when "no" carries them', () =>
+    expect(errors(validateStatus(status({ status: 'no', evidence: [{ ...src, url: 'http://g1.globo.com/a' }] }), strict))).toHaveLength(1));
+  it('still requires checkedAt for "no" (a stale/unchecked "no" is never valid)', () =>
+    expect(errors(validateStatus(status({ status: 'no', checkedAt: null, evidence: [] }), strict)).length).toBeGreaterThan(0));
   it('rejects non-HTTPS evidence', () =>
     expect(errors(validateStatus(status({ evidence: [{ ...src, url: 'http://g1.globo.com/a' }] }), strict))).toHaveLength(1));
   it('rejects untrusted domains', () =>

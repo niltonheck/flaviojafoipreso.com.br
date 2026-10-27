@@ -11,15 +11,15 @@ npm run news:add -- https://g1.globo.com/…            # use --dry-run para só
 #    se faltar algo: --headline "…" --publisher "…" --date 2026-10-27 --summary "…"
 
 # 2. Status: reconfirme (a cada ≤72 h, senão o site mostra "NÃO VERIFICADO")
-npm run status:set -- no --source https://g1.globo.com/…     # fonte nova
-npm run status:set -- no                                      # reaproveita as fontes atuais (confirme!)
+npm run status:set -- no                                      # "NÃO": basta reconfirmar (sem fontes)
+npm run status:set -- yes --source <url> [--source <url>]    # "SIM" exige fonte(s) confiável(is)
 npm run status:set -- unverified                              # na dúvida
 
 npm run validate && npm test      # integridade dos dados
 git diff                          # revise, depois commit + PR
 ```
 
-`yes` exige fontes e nunca é automático. Os scripts só preenchem o boilerplate; **você** decide o que é verdade.
+`no` só precisa da data da checagem (sem fontes); `yes` exige fontes confiáveis e nunca é automático. Os scripts só preenchem o boilerplate; **você** decide o que é verdade.
 
 ## Fontes aceitas
 

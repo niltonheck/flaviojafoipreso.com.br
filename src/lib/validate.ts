@@ -47,8 +47,9 @@ export function validateStatus(r: StatusRecord, o: Options): Issue[] {
   }
   if (r.status !== 'unverified') {
     if (!r.checkedAt) err('status.checkedAt', `status "${r.status}" exige checkedAt`);
-    if (o.strict && r.evidence.length === 0) err('status.evidence', `status "${r.status}" exige ao menos uma fonte`);
-    if (o.strict && r.status === 'yes' && r.evidence.length < 2) {
+    // "no" only needs a fresh check; "yes" must be backed by cited, trusted sources.
+    if (o.strict && r.status === 'yes' && r.evidence.length === 0) err('status.evidence', 'status "yes" exige ao menos uma fonte');
+    if (o.strict && r.status === 'yes' && r.evidence.length === 1) {
       out.push({ level: 'warning', path: 'status.evidence', message: 'status "yes": recomenda-se mais de uma fonte independente' });
     }
   }
