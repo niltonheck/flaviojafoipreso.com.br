@@ -1,0 +1,66 @@
+---
+import type { Poll } from '../../lib/timeline/types';
+import { fmtInt } from '../../lib/timeline/format';
+
+interface Props { poll: Poll }
+const { poll } = Astro.props;
+const total = poll.yes + poll.no;
+const yesPct = Math.round((poll.yes / total) * 100);
+---
+<section class="poll" data-voted="" aria-labelledby="presometro-titulo" data-poll={JSON.stringify({ id: poll.id, yes: poll.yes, no: poll.no })}>
+  <h2 id="presometro-titulo" class="kicker kicker--dark">Presômetro</h2>
+  <p class="poll__question">{poll.question}</p>
+
+  <div class="poll__buttons" role="group" aria-label="Seu palpite">
+    <button type="button" class="choice choice--yes" data-choice="yes" aria-pressed="false">Sim</button>
+    <button type="button" class="choice choice--no" data-choice="no" aria-pressed="false">Não</button>
+  </div>
+
+  <div class="poll__bar" role="img" aria-label={`Sim ${yesPct}%, não ${100 - yesPct}%`} data-bar>
+    <span class="poll__bar-yes" style={`width:${yesPct}%`}></span>
+  </div>
+  <div class="poll__figures" aria-live="polite">
+    <b class="fig fig--yes" data-yes-pct>{yesPct}%</b>
+    <span class="poll__count"><span data-total>{fmtInt(total)}</span> votos simulados • Enquete não científica</span>
+    <b class="fig fig--no" data-no-pct>{100 - yesPct}%</b>
+  </div>
+
+  <p class="poll__error" data-error hidden>Não foi possível carregar a contagem agora.</p>
+  <p class="poll__voted" data-voted-note hidden>Voto de demonstração — não registrado publicamente.</p>
+  <p class="poll__note"><strong>DADOS DE DEMONSTRAÇÃO</strong> · Enquete informal, sem valor estatístico. Nenhum voto é enviado ou contado.</p>
+</section>
+
+<script>
+  import { MockPollRepository } from '../../lib/timeline/pollRepository';
+  import type { Choice, PollResults } from '../../lib/timeline/pollRepository';
+
+  const root = document.querySelector<HTMLElement>('.poll[data-poll]');
+  if (root) {
+    const seed = JSON.parse(root.dataset.poll!) as { id: string; yes: number; no: number };
+    const repo = new MockPollRepository(seed);
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const buttons = root.querySelectorAll<HTMLButtonElement>('.choice');
+    const fmt = new Intl.NumberFormat('pt-BR');
+
+    const render = (r: PollResults) => {
+      const total = r.yes + r.no;
+      if (!total) throw new Error('empty');
+      const yes = Math.round((r.yes / total) * 100);
+      $('[data-yes-pct]').textContent = `${yes}%`;
+      $('[data-no-pct]').textContent = `${100 - yes}%`;
+      $<HTMLElement>('.poll__bar-yes').style.width = `${yes}%`;
+      $('[data-bar]').setAttribute('aria-label', `Sim ${yes}%, não ${100 - yes}%`);
+      $('[data-total]').textContent = fmt.format(total);
+      $('[data-voted-note]').hidden = r.myVote === null;
+      root.dataset.voted = r.myVote ?? '';
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.choice === r.myVote)));
+      $('[data-error]').hidden = true;
+    };
+    const fail = () => { $('[data-error]').hidden = false; };
+
+    repo.getResults().then(render).catch(fail);
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => repo.vote(b.dataset.choice as Choice).then(render).catch(fail)),
+    );
+  }
+</script>

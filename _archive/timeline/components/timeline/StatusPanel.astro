@@ -1,0 +1,32 @@
+---
+import type { StatusRecord, Status } from '../../lib/timeline/types';
+import { fmtDateTime } from '../../lib/timeline/format';
+
+interface Props { record: StatusRecord }
+const { record } = Astro.props;
+const ANSWER: Record<Status, string> = { yes: 'SIM.', no: 'NÃO.', unverified: 'NÃO VERIFICADO' };
+const status: Status = record.status !== 'unverified' && !record.checkedAt ? 'unverified' : record.status;
+---
+<section class="status" aria-labelledby="pergunta" data-status={status}>
+  <div class="status__portrait" aria-hidden="true">
+    <img
+      src="/images/flavio-circle.webp"
+      alt=""
+      width="560"
+      height="560"
+      decoding="async"
+      onerror="this.parentElement.hidden=true"
+    />
+  </div>
+  <div class="status__head">
+    <p class="kicker">Status atual</p>
+    <h1 id="pergunta" class="status__question">Flávio Bolsonaro já foi preso?</h1>
+  </div>
+  <p class="status__answer" role="status">{ANSWER[status]}</p>
+  <p class="status__meta">
+    Até onde foi possível verificar.{' '}
+    {record.checkedAt && <><time datetime={record.checkedAt}>Checado em {fmtDateTime(record.checkedAt)}.</time>{' '}</>}
+    <a href="#metodologia">Como verificamos</a>
+    <span class="status__demo">Demonstração: conteúdo local, sem verificação editorial.</span>
+  </p>
+</section>

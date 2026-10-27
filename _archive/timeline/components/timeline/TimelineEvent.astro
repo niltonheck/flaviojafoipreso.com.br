@@ -1,0 +1,19 @@
+---
+import type { TimelineEvent } from '../../lib/timeline/types';
+import { fmtShort, CATEGORY_LABEL } from '../../lib/timeline/format';
+
+interface Props { event: TimelineEvent; latest?: boolean }
+const { event, latest = false } = Astro.props;
+const source = event.sources[0];
+---
+<li class:list={['event', { 'event--latest': latest }]}>
+  <span class="event__node" aria-hidden="true"></span>
+  <time class="event__date" datetime={event.date}>{fmtShort(event.date)}</time>
+  <h3 class="event__title">{event.title}</h3>
+  <p class="event__meta">
+    {CATEGORY_LABEL[event.category]} ·{' '}
+    {source
+      ? <a href={source.url} rel="noopener noreferrer" target="_blank">{source.publisher}</a>
+      : <span>Fonte: a definir</span>}
+  </p>
+</li>

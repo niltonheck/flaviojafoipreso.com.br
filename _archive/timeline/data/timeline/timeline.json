@@ -1,0 +1,8 @@
+[
+  { "id": "e6", "date": "2026-10-20", "category": "arrest_status", "title": "[Evento ilustrativo 06] Atualização de situação", "summary": "[Resumo a ser preenchido após verificação editorial]", "sources": [] },
+  { "id": "e5", "date": "2026-09-30", "category": "defense_statement", "title": "[Evento ilustrativo 05] Manifestação da defesa", "summary": "[Resumo a ser preenchido após verificação editorial] Posições da defesa entram na linha do tempo com o mesmo destaque.", "sources": [] },
+  { "id": "e4", "date": "2026-08-14", "category": "court_decision", "title": "[Evento ilustrativo 04] Decisão de um tribunal", "summary": "[Resumo a ser preenchido após verificação editorial]", "sources": [] },
+  { "id": "e3", "date": "2026-06-02", "category": "investigation", "title": "[Evento ilustrativo 03] Etapa de uma investigação", "summary": "[Resumo a ser preenchido após verificação editorial] Investigação não é acusação, e acusação não é condenação.", "sources": [] },
+  { "id": "e2", "date": "2026-03-19", "category": "other", "title": "[Evento ilustrativo 02] Acontecimento de contexto", "summary": "[Resumo a ser preenchido após verificação editorial]", "sources": [] },
+  { "id": "e1", "date": "2026-01-08", "category": "investigation", "title": "[Evento ilustrativo 01] Início do arquivo", "summary": "[Resumo a ser preenchido após verificação editorial]", "sources": [] }
+]

@@ -1,0 +1,39 @@
+---
+import StatusPanel from '../components/timeline/StatusPanel.astro';
+import Timeline from '../components/timeline/Timeline.astro';
+import Presometro from '../components/timeline/Presometro.astro';
+import LatestNews from '../components/timeline/LatestNews.astro';
+import Footer from '../components/timeline/Footer.astro';
+import status from '../data/timeline/status.json';
+import timeline from '../data/timeline/timeline.json';
+import news from '../data/timeline/news.json';
+import poll from '../data/timeline/poll.json';
+import type { StatusRecord, TimelineEvent, NewsItem, Poll } from '../lib/timeline/types';
+import '../styles/timeline.css';
+---
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flávio Já Foi Preso? — O arquivo (sátira política)</title>
+    <meta name="description" content="Um jornal sério sobre uma pergunta absurda: Flávio Bolsonaro já foi preso? Linha do tempo, Presômetro informal e sátira. Não é fonte oficial." />
+    <meta name="theme-color" content="#f5f1e8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon-timeline.svg" />
+  </head>
+  <body class="tl-page">
+    <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+    <div class="sheet">
+      <p class="topline">Sátira política · Não é fonte oficial</p>
+      <main id="conteudo">
+        <div class="card">
+          <div class="card__status"><StatusPanel record={status as StatusRecord} /></div>
+          <div class="card__poll"><Presometro poll={poll as Poll} /></div>
+          <div class="card__timeline"><Timeline events={timeline as TimelineEvent[]} /></div>
+        </div>
+        <LatestNews items={news as NewsItem[]} />
+      </main>
+      <Footer />
+    </div>
+  </body>
+</html>

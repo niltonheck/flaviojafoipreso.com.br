@@ -1,0 +1,25 @@
+---
+import type { TimelineEvent as TEvent } from '../../lib/timeline/types';
+import TimelineEvent from './TimelineEvent.astro';
+
+interface Props { events: TEvent[] }
+const events = [...Astro.props.events].sort((a, b) => b.date.localeCompare(a.date));
+const VISIBLE = 4;
+const first = events.slice(0, VISIBLE);
+const rest = events.slice(VISIBLE);
+---
+<section class="timeline" aria-labelledby="timeline-titulo">
+  <h2 id="timeline-titulo" class="kicker">Linha do tempo</h2>
+  <ol class="timeline__list">
+    {first.map((e, i) => <TimelineEvent event={e} latest={i === 0} />)}
+  </ol>
+  {rest.length > 0 && (
+    <details class="timeline__more">
+      <summary>Ver todos os eventos <span aria-hidden="true">→</span></summary>
+      <ol class="timeline__list timeline__list--rest">
+        {rest.map((e) => <TimelineEvent event={e} />)}
+      </ol>
+    </details>
+  )}
+  <p class="timeline__note">Eventos de demonstração. Investigação, acusação, decisão e prisão são coisas distintas.</p>
+</section>

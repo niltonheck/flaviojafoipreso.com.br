@@ -1,0 +1,45 @@
+---
+// DEV-ONLY comparison page. Not part of the product.
+---
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Comparação v0 — Flávio Já Foi Preso?</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: system-ui, sans-serif; background: #111; color: #eee; line-height: 1.5; }
+      main { max-width: 960px; margin: 0 auto; padding: 32px 20px 56px; }
+      h1 { font-size: 1.1rem; margin: 0 0 4px; }
+      .note { color: #999; font-size: .85rem; margin: 0 0 24px; }
+      .row { display: grid; gap: 16px; }
+      @media (min-width: 760px) { .row { grid-template-columns: 1fr 1fr; } }
+      .opt { display: block; border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; border: 1px solid #333; }
+      .opt:hover, .opt:focus-visible { border-color: #fff; outline: none; }
+      .opt__head { padding: 14px 16px; display: flex; justify-content: space-between; gap: 8px; font-weight: 700; }
+      .opt__head span { color: #999; font-weight: 400; font-family: ui-monospace, monospace; font-size: .85rem; }
+      .opt iframe { display: block; width: 100%; height: 520px; border: 0; pointer-events: none; background: #fff; }
+      .links { margin-top: 20px; font-size: .85rem; color: #999; }
+      .links a { color: #fff; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Flávio Já Foi Preso? — protótipos v0</h1>
+      <p class="note">Página de comparação, somente para desenvolvimento. Cada layout funciona de forma independente.</p>
+      <div class="row">
+        <a class="opt" href="/hero">
+          <div class="opt__head">A · Hero minimalista <span>/hero</span></div>
+          <iframe src="/hero" title="Prévia do layout A" loading="lazy" tabindex="-1"></iframe>
+        </a>
+        <a class="opt" href="/timeline">
+          <div class="opt__head">B · Linha do tempo editorial <span>/timeline</span></div>
+          <iframe src="/timeline" title="Prévia do layout B" loading="lazy" tabindex="-1"></iframe>
+        </a>
+      </div>
+      <p class="links">Abrir direto: <a href="/hero">/hero</a> · <a href="/timeline">/timeline</a></p>
+    </main>
+  </body>
+</html>

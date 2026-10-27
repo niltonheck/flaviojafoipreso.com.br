@@ -1,0 +1,5 @@
+[
+  { "id": "n1", "title": "[Manchete ilustrativa 01] Texto de exemplo para a faixa de notícias", "source": { "publisher": "Veículo ilustrativo", "title": "—", "url": "", "publishedAt": "2026-10-26" } },
+  { "id": "n2", "title": "[Manchete ilustrativa 02] Outra linha de exemplo para testar quebra de texto", "source": { "publisher": "Veículo ilustrativo", "title": "—", "url": "", "publishedAt": "2026-10-18" } },
+  { "id": "n3", "title": "[Manchete ilustrativa 03] Terceiro item de demonstração", "source": { "publisher": "Veículo ilustrativo", "title": "—", "url": "", "publishedAt": "2026-10-03" } }
+]
