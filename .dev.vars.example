@@ -1,0 +1,3 @@
+# Copy to .dev.vars (gitignored) for `wrangler dev`. Generate the secret with: openssl rand -hex 32
+VOTER_HMAC_SECRET=replace-me-with-at-least-32-random-characters
+ALLOWED_ORIGINS=http://localhost:8787

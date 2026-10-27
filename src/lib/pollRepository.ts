@@ -1,47 +1,31 @@
 export type Choice = 'yes' | 'no';
-export type PollResults = { yes: number; no: number; simulated: boolean; myVote: Choice | null };
+export type PollState = 'open' | 'closed' | 'upcoming';
 
-/** UI talks only to this interface; a Cloudflare Worker + D1 adapter can replace the mock later. */
+export type PollResults = {
+  yes: number;
+  no: number;
+  total: number;
+  state: PollState;
+  /** Brasília calendar day the tally covers (null for demo data or a closed poll). */
+  day: string | null;
+  myVote: Choice | null;
+  simulated: boolean;
+};
+
+export type PollErrorKind = 'unavailable' | 'rate_limited' | 'closed' | 'already_voted' | 'invalid';
+
+export class PollError extends Error {
+  kind: PollErrorKind;
+  retryAfter?: number;
+  constructor(kind: PollErrorKind, retryAfter?: number) {
+    super(kind);
+    this.kind = kind;
+    this.retryAfter = retryAfter;
+  }
+}
+
+/** The UI only talks to this interface: a demo adapter locally, the Worker + D1 adapter in production. */
 export interface PollRepository {
   getResults(): Promise<PollResults>;
   vote(choice: Choice): Promise<PollResults>;
-}
-
-/** Browser-only demo adapter. Nothing leaves the page; the vote lives in sessionStorage. */
-export class MockPollRepository implements PollRepository {
-  private key: string;
-  constructor(private seed: { id: string; yes: number; no: number }) {
-    this.key = `poll:${seed.id}:vote`;
-  }
-  private read(): Choice | null {
-    try {
-      const v = sessionStorage.getItem(this.key);
-      return v === 'yes' || v === 'no' ? v : null;
-    } catch {
-      return null;
-    }
-  }
-  async getResults(): Promise<PollResults> {
-    const myVote = this.read();
-    return {
-      yes: this.seed.yes + (myVote === 'yes' ? 1 : 0),
-      no: this.seed.no + (myVote === 'no' ? 1 : 0),
-      simulated: true,
-      myVote,
-    };
-  }
-  async vote(choice: Choice): Promise<PollResults> {
-    try {
-      sessionStorage.setItem(this.key, choice);
-    } catch {
-      /* storage blocked: the UI still updates for this view */
-    }
-    const r = await this.getResults();
-    return r.myVote === choice ? r : {
-      yes: this.seed.yes + (choice === 'yes' ? 1 : 0),
-      no: this.seed.no + (choice === 'no' ? 1 : 0),
-      simulated: true,
-      myVote: choice,
-    };
-  }
 }

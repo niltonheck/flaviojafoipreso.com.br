@@ -9,8 +9,6 @@ import '../styles/global.css';
 
 const c = await loadContent();
 const demo = c.mode === 'demo';
-// The demo poll (and its script) is only ever imported for mock mode, so it cannot ship to production.
-const PresometroMock = c.pollMode === 'mock' && c.demoCounts ? (await import('../components/PresometroMock.astro')).default : null;
 ---
 <!doctype html>
 <html lang="pt-BR">
@@ -29,7 +27,7 @@ const PresometroMock = c.pollMode === 'mock' && c.demoCounts ? (await import('..
       <main id="conteudo">
         <StatusHero record={c.record} resolved={c.resolved} checkedAtLabel={c.checkedAtLabel} maxAgeHours={c.statusMaxAgeHours} demo={demo} />
         <div class="lower">
-          {PresometroMock && c.demoCounts ? <PresometroMock poll={c.poll} demoCounts={c.demoCounts} /> : <Presometro poll={c.poll} />}
+          <Presometro poll={c.poll} pollMode={c.pollMode} demoCounts={c.demoCounts} />
           <NewsList items={c.news} demo={demo} />
         </div>
       </main>

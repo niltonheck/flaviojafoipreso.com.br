@@ -96,7 +96,7 @@ a { color: inherit; }
 .vote:active { transform: translateY(1px); }
 .vote--yes[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--green); }
 .vote--no[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--red); }
-.presometro:not([data-voted=""]) .vote[aria-pressed="false"] { opacity: .55; }
+.vote:disabled[aria-pressed="false"] { opacity: .55; }
 .presometro__result { margin-top: 20px; }
 .presometro__labels { display: flex; justify-content: space-between; font-size: .95rem; margin-bottom: 6px; }
 .pct b { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
@@ -108,6 +108,15 @@ a { color: inherit; }
 .presometro__note { margin: 16px 0 0; font-size: .75rem; color: var(--muted); line-height: 1.4; }
 .presometro__note strong { color: var(--text); letter-spacing: .06em; }
 .presometro__voted { margin: 8px 0 0; font-size: .8rem; font-weight: 600; color: var(--green); }
+.presometro__msg { margin: 12px 0 0; font-size: .85rem; font-weight: 600; color: var(--muted); }
+.presometro__msg[data-kind="ok"] { color: var(--green); }
+.presometro__msg[data-kind="error"] { color: var(--red); }
+.vote:disabled { cursor: not-allowed; }
+.vote:disabled:hover { transform: none; }
+.presometro[data-state="loading"] .presometro__result { visibility: hidden; }
+.presometro[data-state="unavailable"] .presometro__result,
+.presometro[data-state="unavailable"] .presometro__buttons { display: none; }
+.presometro[data-empty] .bar { opacity: .35; }
 .presometro__unavailable { margin: 12px 0 0; padding: 14px 16px; border: 1px dashed var(--border); border-radius: 10px; font-weight: 600; color: var(--muted); }
 .presometro__error { margin: 12px 0 0; font-size: .85rem; color: var(--red); font-weight: 600; }
 

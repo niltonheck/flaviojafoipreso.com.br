@@ -1,12 +1,156 @@
 ---
-import type { PollConfig } from '../lib/types';
+import type { DemoCounts, PollConfig, PollMode } from '../lib/types';
+import { fmtInt } from '../lib/format';
 
-interface Props { poll: PollConfig }
-const { poll } = Astro.props;
+interface Props { poll: PollConfig; pollMode: PollMode; demoCounts: DemoCounts | null }
+const { poll, pollMode, demoCounts } = Astro.props;
+const mock = pollMode === 'mock';
+const counts = mock ? (demoCounts ?? { yes: 0, no: 0 }) : { yes: 0, no: 0 };
+const total = counts.yes + counts.no;
+const yesPct = total ? Math.round((counts.yes / total) * 100) : 0;
 ---
-<section class="card presometro" aria-labelledby="presometro-titulo">
+<section
+  class="card presometro"
+  aria-labelledby="presometro-titulo"
+  data-state={mock ? 'open' : 'loading'}
+  data-poll={JSON.stringify({ id: poll.id, yes: counts.yes, no: counts.no })}
+>
   <h2 id="presometro-titulo" class="card__title">Presômetro</h2>
   <p class="presometro__question">{poll.question}</p>
-  <p class="presometro__unavailable" role="status">Presômetro temporariamente indisponível.</p>
-  <p class="presometro__note">Enquete informal, voluntária e não científica.</p>
+
+  <div class="presometro__buttons" role="group" aria-label="Seu palpite">
+    <button type="button" class="vote vote--yes" data-choice="yes" aria-pressed="false" disabled={!mock}>Sim</button>
+    <button type="button" class="vote vote--no" data-choice="no" aria-pressed="false" disabled={!mock}>Não</button>
+  </div>
+
+  <p class="presometro__msg" data-status-msg role="status" hidden></p>
+
+  <div class="presometro__result">
+    <div class="presometro__labels" aria-live="polite">
+      <span class="pct pct--yes"><b data-yes-pct>{yesPct}%</b> sim</span>
+      <span class="pct pct--no">não <b data-no-pct>{100 - yesPct}%</b></span>
+    </div>
+    <div class="bar" role="img" aria-label={`Sim ${yesPct}%, não ${100 - yesPct}%`} data-bar>
+      <span class="bar__yes" style={`width:${yesPct}%`}></span>
+    </div>
+    <p class="presometro__count">
+      <span data-total>{fmtInt(total)}</span> <span data-count-label data-sim-label={mock ? 'votos simulados' : undefined}>{mock ? 'votos simulados' : 'votos hoje'}</span>
+    </p>
+  </div>
+
+  <p class="presometro__note">
+    {mock
+      ? <><strong>DEMONSTRAÇÃO</strong> · Enquete informal, sem valor estatístico. Contagem simulada, não é opinião pública real.</>
+      : <>Enquete informal, voluntária e não científica. Um voto por dia por navegador (esse limite pode ser contornado); a contagem recomeça à meia-noite, horário de Brasília.</>}
+  </p>
+  <noscript><p class="presometro__note">Ative JavaScript para participar.</p></noscript>
 </section>
+
+<script>
+  import { ApiPollRepository } from '../lib/apiPollRepository';
+  import { PollError, type Choice, type PollRepository, type PollResults } from '../lib/pollRepository';
+
+  const MESSAGES = {
+    unavailable: 'Presômetro temporariamente indisponível.',
+    closed: 'Enquete encerrada.',
+    upcoming: 'A enquete ainda não começou.',
+    voted: 'Voto registrado. Volte amanhã para votar de novo.',
+    votedDemo: 'Voto de demonstração — não registrado publicamente.',
+    submitting: 'Enviando seu voto…',
+    rateLimited: 'Muitos votos vindos da sua rede agora. Tente de novo em instantes.',
+    failed: 'Não foi possível registrar seu voto agora. Tente novamente.',
+  };
+
+  const root = document.querySelector<HTMLElement>('.presometro[data-poll]');
+  if (root) void init(root);
+
+  async function init(root: HTMLElement) {
+    const seed = JSON.parse(root.dataset.poll!) as { id: string; yes: number; no: number };
+    // Build-time constant: in production this branch (and the demo adapter) is removed from the bundle.
+    const MOCK = (import.meta.env.PUBLIC_POLL_MODE ?? (import.meta.env.MODE === 'demo' ? 'mock' : 'api')) === 'mock';
+    let repo: PollRepository;
+    if (MOCK) {
+      const { MockPollRepository } = await import('../lib/mockPollRepository');
+      repo = new MockPollRepository(seed);
+    } else {
+      repo = new ApiPollRepository({ pollId: seed.id });
+    }
+
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const buttons = root.querySelectorAll<HTMLButtonElement>('.vote');
+    const fmt = new Intl.NumberFormat('pt-BR');
+    const msg = $('[data-status-msg]');
+
+    const say = (text: string, kind: 'info' | 'ok' | 'error' = 'info') => {
+      msg.textContent = text;
+      msg.dataset.kind = kind;
+      msg.hidden = text === '';
+    };
+    const lock = (locked: boolean, pressed: Choice | null = null) =>
+      buttons.forEach((b) => {
+        b.disabled = locked;
+        b.setAttribute('aria-pressed', String(b.dataset.choice === pressed));
+      });
+
+    function render(r: PollResults) {
+      const yes = r.total ? Math.round((r.yes / r.total) * 100) : 0;
+      $('[data-yes-pct]').textContent = `${yes}%`;
+      $('[data-no-pct]').textContent = `${r.total ? 100 - yes : 0}%`;
+      $<HTMLElement>('.bar__yes').style.width = `${yes}%`;
+      $('[data-bar]').setAttribute('aria-label', r.total ? `Sim ${yes}%, não ${100 - yes}%` : 'Ainda sem votos');
+      $('[data-total]').textContent = fmt.format(r.total);
+      root.toggleAttribute('data-empty', r.total === 0);
+      $('[data-count-label]').textContent = r.simulated ? ($('[data-count-label]').dataset.simLabel ?? '') : r.state === 'closed' ? (r.total === 1 ? 'voto no total' : 'votos no total') : r.total === 1 ? 'voto hoje' : 'votos hoje';
+    }
+
+    function settle(r: PollResults) {
+      render(r);
+      if (r.state === 'closed' || r.state === 'upcoming') {
+        root.dataset.state = r.state;
+        lock(true, r.myVote);
+        say(r.state === 'closed' ? MESSAGES.closed : MESSAGES.upcoming);
+      } else if (r.myVote) {
+        root.dataset.state = 'voted';
+        lock(true, r.myVote);
+        say(r.simulated ? MESSAGES.votedDemo : MESSAGES.voted, 'ok');
+      } else {
+        root.dataset.state = 'open';
+        lock(false);
+        say('');
+      }
+    }
+
+    function unavailable() {
+      root.dataset.state = 'unavailable';
+      lock(true);
+      say(MESSAGES.unavailable, 'error');
+    }
+
+    repo.getResults().then(settle).catch(unavailable);
+
+    buttons.forEach((b) =>
+      b.addEventListener('click', async () => {
+        const choice = b.dataset.choice as Choice;
+        root.dataset.state = 'submitting';
+        lock(true);
+        say(MESSAGES.submitting);
+        try {
+          settle(await repo.vote(choice));
+        } catch (e) {
+          const kind = e instanceof PollError ? e.kind : 'unavailable';
+          if (kind === 'already_voted' || kind === 'closed') {
+            repo.getResults().then(settle).catch(unavailable);
+          } else if (kind === 'rate_limited') {
+            root.dataset.state = 'rate-limited';
+            say(MESSAGES.rateLimited, 'error');
+            setTimeout(() => { if (root.dataset.state === 'rate-limited') { root.dataset.state = 'open'; lock(false); say(''); } }, ((e as PollError).retryAfter ?? 60) * 1000);
+          } else {
+            root.dataset.state = 'open';
+            lock(false);
+            say(MESSAGES.failed, 'error');
+          }
+        }
+      }),
+    );
+  }
+</script>

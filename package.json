@@ -13,7 +13,12 @@
     "preview": "astro preview",
     "check": "astro check",
     "news:add": "node scripts/editor.ts news",
-    "status:set": "node scripts/editor.ts status"
+    "status:set": "node scripts/editor.ts status",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:seed:local": "wrangler d1 execute DB --local --file=seeds/staging.sql",
+    "db:reset:local": "rm -rf .wrangler/state/v3/d1 && npm run db:migrate:local && npm run db:seed:local",
+    "build:api-demo": "PUBLIC_POLL_MODE=api npm run build:demo",
+    "preview:api": "npm run build:api-demo && wrangler dev --port 8787"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.12",
@@ -21,6 +26,7 @@
     "typescript": "^6.0.3"
   },
   "devDependencies": {
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "wrangler": "^4.153.0"
   }
 }
