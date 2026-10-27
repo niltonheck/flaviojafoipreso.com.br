@@ -45,9 +45,11 @@ describe('wrangler.jsonc', () => {
     }
   });
 
-  it('keeps production blocked until it has its own database (PR 4)', () => {
-    expect(cfg.env.production.d1_databases[0].database_id).toMatch(/^REPLACE_/);
-    expect(guard('production').status).toBe(1);
+  it('gives production its own database, distinct from staging, and passes the deploy guard', () => {
+    const ids = [cfg.env.staging, cfg.env.production].map((e) => e.d1_databases[0].database_id);
+    expect(new Set(ids).size).toBe(2);
+    expect(ids[1]).toMatch(/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/);
+    expect(guard('production').status).toBe(0);
   });
 
   it('rejects unknown environments', () => expect(guard('qa').status).toBe(1));
