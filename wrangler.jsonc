@@ -59,7 +59,7 @@
         {
           "binding": "DB",
           "database_name": "fjfp-production",
-          "database_id": "REPLACE_WITH_PRODUCTION_D1_ID",
+          "database_id": "542ca32c-2437-492e-8913-24681076a9ee",
           "migrations_dir": "migrations"
         }
       ],
