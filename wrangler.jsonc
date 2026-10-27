@@ -34,7 +34,7 @@
         {
           "binding": "DB",
           "database_name": "fjfp-staging",
-          "database_id": "REPLACE_WITH_STAGING_D1_ID",
+          "database_id": "496c457e-5f50-436f-9484-9650b45bc37c",
           "migrations_dir": "migrations"
         }
       ],

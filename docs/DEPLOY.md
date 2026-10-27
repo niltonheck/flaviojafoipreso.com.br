@@ -14,6 +14,16 @@ repo does not hardcode any quota (SPEC C §7). Nothing is deployed until you run
 
 Staging and production never share a database or a secret. The mock poll is refused in production builds.
 
+## Staging status
+
+Deployed 2026-10-27: Worker `flaviojafoipreso-staging` (workers.dev), D1 `fjfp-staging`, secret
+`VOTER_HMAC_SECRET` set, rate limiter bound. Verified live: all 12 smoke checks, a real browser vote that persists
+across reloads, CSP with zero violations, duplicate vote → 409. **Rate limiter:** it does trigger (200 rapid requests
+→ 54 were 429), but it is approximate: 25 sequential requests were not limited. Treat it as an abuse brake; the
+database unique constraint is what guarantees one vote per day. Free-tier quotas and pricing were **not** verified.
+The account and the exact staging URL are intentionally not recorded in this repo; keep them in your notes (and in
+the GitHub `STAGING_URL` variable if you use the deploy workflow).
+
 ## One-time staging setup
 
 ```bash
