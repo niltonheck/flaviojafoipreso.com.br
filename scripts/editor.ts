@@ -1,6 +1,7 @@
 // Editor helper (SPEC C §3/§4): you pick the story, this fills in the boilerplate.
 // It never decides what is true and never runs automatically; a human runs it and reviews the diff.
-//   (keeps the page's full publication timestamp so same-day stories sort correctly)
+//   (keeps the page's full publication timestamp so same-day stories sort correctly; no publisher text is copied
+//   unless you pass --summary)
 //   npm run news:add -- <url> [--headline "…"] [--publisher "…"] [--date YYYY-MM-DD] [--summary "…"] [--dry-run]
 //   npm run status:set -- <yes|no|unverified> [--source <url>]… [--note "…"] [--dry-run]
 //   "no" needs no sources (just the check time); "yes" requires at least one trusted source.
@@ -61,7 +62,7 @@ if (cmd === 'news') {
   const item: NewsItem = {
     id: `${brasiliaDay(publishedAt)}-${slug(headline)}`,
     headline,
-    ...((values.summary ?? meta?.description) ? { summary: values.summary ?? meta?.description ?? undefined } : {}),
+    ...(values.summary ? { summary: values.summary } : {}),
     publishedAt,
     source: { publisher: values.publisher ?? meta?.siteName ?? publisherFrom(new URL(url).hostname), url },
     reviewedAt: nowBrasilia(),

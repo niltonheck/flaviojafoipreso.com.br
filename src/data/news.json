@@ -2,7 +2,6 @@
   {
     "id": "2026-10-26-pf-intima-flavio-a-entregar-passaportes-",
     "headline": "PF intima Flávio a entregar passaportes após decisão de Moraes",
-    "summary": "A Polícia Federal intimou Flávio Bolsonaro (PL) a entregar seus passaportes, comum e diplomático, em até 24 horas. A intimação segue determinação do ministro do STF Alexandre de Moraes.A decisão de Moraes também proíbe Flávio de se comunicar com Willer",
     "publishedAt": "2026-10-26T19:52:40.000Z",
     "source": {
       "publisher": "UOL",
@@ -14,7 +13,6 @@
   {
     "id": "2026-10-27-flavio-bolsonaro-respondera-a-dois-inque",
     "headline": "Flávio Bolsonaro responderá a dois inquéritos sem foro especial em 2027",
-    "summary": "As principais notícias para começar o dia bem informado:Justiça: Flávio enfrentará dois inquéritos sem foro especialPolítica: Lula se reúne com Motta e Alcolumbre após vitóriaGoverno: Lula deve acomodar derrotados nos ministériosEconomia: Dólar dispara",
     "publishedAt": "2026-10-27T11:21:14.000Z",
     "source": {
       "publisher": "UOL",
@@ -26,7 +24,6 @@
   {
     "id": "2026-10-27-orgao-de-migracao-e-membro-do-governo-mi",
     "headline": "Órgão de migração e membro do governo Milei negam que Flávio Bolsonaro esteja na Argentina",
-    "summary": "Suspeita de que candidato derrotado nas eleições presidenciais estaria no país vizinho surgiu na madrugada",
     "publishedAt": "2026-10-27T11:19:00-03:00",
     "source": {
       "publisher": "Folha de S.Paulo",
@@ -38,7 +35,6 @@
   {
     "id": "2026-10-27-pf-investiga-se-flavio-bolsonaro-fugiu-d",
     "headline": "PF investiga se Flávio Bolsonaro fugiu do País após Moraes determinar entrega dos passaportes",
-    "summary": "Aliados do candidato derrotado na eleição presidencial dizem não saber de seu paradeiro; na segunda-feira, ele havia dito que iria entregar os documentos à Polícia Federal e se defender de ‘aberração’",
     "publishedAt": "2026-10-27T14:21:50.173Z",
     "source": {
       "publisher": "Estadão",
@@ -50,13 +46,23 @@
   {
     "id": "2026-10-27-flavio-bolsonaro-pf-apura-se-senador-dei",
     "headline": "Flávio Bolsonaro: PF apura se senador deixou o país pela Argentina",
-    "summary": "PF investiga se Flávio Bolsonaro deixou o Brasil pela fronteira argentina. Na segunda-feira, o ministro Alexandre de Moraes, do STF, determinou que o senador entregue o passaporte.",
     "publishedAt": "2026-10-27T11:00:49.306-03:00",
     "source": {
       "publisher": "G1",
       "url": "https://g1.globo.com/politica/blog/andreia-sadi/post/2026/10/27/pf-flavio-bolsonaro.ghtml"
     },
     "reviewedAt": "2026-10-27T12:45:04-03:00",
+    "reviewedBy": "niltonheck"
+  },
+  {
+    "id": "2026-10-27-aliados-de-flavio-bolsonaro-sao-avisados",
+    "headline": "Aliados de Flávio Bolsonaro são avisados de que ele fugiu do Brasil",
+    "publishedAt": "2026-10-27T12:35:00-03:00",
+    "source": {
+      "publisher": "Folha de S.Paulo",
+      "url": "https://www1.folha.uol.com.br/colunas/monicabergamo/2026/10/aliados-de-flavio-bolsonaro-sao-avisados-de-que-ele-saiu-do-brasil.shtml"
+    },
+    "reviewedAt": "2026-10-27T12:52:48-03:00",
     "reviewedBy": "niltonheck"
   }
 ]
