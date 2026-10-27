@@ -45,6 +45,7 @@ export function buildHeaders(mode: Mode, scriptHashes: string[]): string {
     // HTML: short cache so an editorial change/correction is live quickly (and can still be purged).
     rule('/', ['Cache-Control: public, max-age=60, must-revalidate']),
     rule('/index.html', ['Cache-Control: public, max-age=60, must-revalidate']),
+    rule('/privacidade*', ['Cache-Control: public, max-age=300, must-revalidate']),
     // Fingerprinted by the build: safe to cache forever.
     rule('/_astro/*', ['Cache-Control: public, max-age=31536000, immutable']),
     // Not fingerprinted: a day, so a replaced image shows up soon.

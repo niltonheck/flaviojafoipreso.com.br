@@ -39,7 +39,7 @@ describe('buildHeaders', () => {
     const h = buildHeaders('production', []);
     expect(h).toMatch(/\/_astro\/\*\n\s+Cache-Control: public, max-age=31536000, immutable/);
     expect(h).toMatch(/\/\n\s+Cache-Control: public, max-age=60, must-revalidate/);
-    expect(h.match(/Cache-Control/g)).toHaveLength(4); // only on specific paths: no duplicate-merge surprises
+    expect(h.match(/Cache-Control/g)).toHaveLength(5); // only on specific paths: no duplicate-merge surprises
   });
 });
 

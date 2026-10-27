@@ -25,6 +25,7 @@ if (bad.length) process.exit(1);
 
 // ---- headers, robots, indexing, secrets (SPEC C §7-§8, §10 test 8) ----
 const more: [string, boolean][] = [];
+const everythingHtml = () => readdirSync(new URL('../dist/', import.meta.url), { recursive: true, withFileTypes: true }).filter((e) => e.isFile() && e.name.endsWith('.html')).map((e) => readFileSync(`${e.parentPath}/${e.name}`, 'utf8')).join('\n');
 const read = (p: string) => (existsSync(new URL(`../dist/${p}`, import.meta.url)) ? readFileSync(new URL(`../dist/${p}`, import.meta.url), 'utf8') : '');
 const headersFile = read('_headers');
 const robots = read('robots.txt');
@@ -40,6 +41,12 @@ if (mode === 'production') {
 }
 if (mode === 'staging') more.push(['banner de ambiente de teste', pageHtml.includes('Ambiente de teste')]);
 if (mode !== 'staging') more.push(['sem banner de teste', !pageHtml.includes('Ambiente de teste')]);
+
+// The privacy page must exist, and production must not ship with unfilled placeholders (operator name/email).
+const privacy = read('privacidade/index.html');
+more.push(['página /privacidade existe', privacy.includes('Política de privacidade')]);
+// CI sets ALLOW_PLACEHOLDERS=1 so it can still run every other production check; a real release never does.
+if (mode === 'production' && process.env.ALLOW_PLACEHOLDERS !== '1') more.push(['sem campos [PREENCHER] no site', !everythingHtml().includes('[PREENCHER')]);
 
 // No secret-looking PUBLIC_ variables, and no secret value or name anywhere in the output.
 const SECRETISH = /SECRET|TOKEN|PASSWORD|PRIVATE|API_?KEY/i;

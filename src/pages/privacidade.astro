@@ -1,0 +1,104 @@
+---
+import Base from '../layouts/Base.astro';
+import site from '../data/site.json';
+import { resolveConfig } from '../lib/config';
+import { fmtDate } from '../lib/format';
+
+const draft = resolveConfig(import.meta.env).mode !== 'production';
+const updated = fmtDate(site.privacyUpdatedAt);
+---
+<Base
+  title="Política de privacidade — Flávio Já Foi Preso?"
+  description="Quais dados o Flávio Já Foi Preso? trata, para quê, por quanto tempo e como exercer seus direitos (LGPD)."
+>
+  <article class="prose">
+    <h1>Política de privacidade</h1>
+    <p class="prose__meta">Atualizada em <time datetime={site.privacyUpdatedAt}>{updated}</time></p>
+    {draft && (
+      <p class="prose__draft" role="note">
+        <strong>Rascunho.</strong> Este texto ainda precisa de revisão jurídica e dos campos “[PREENCHER]” antes da publicação em produção.
+      </p>
+    )}
+
+    <h2>Em resumo</h2>
+    <ul>
+      <li>Não há contas, cadastro, e-mail, anúncios, análise de audiência nem scripts ou fontes de terceiros.</li>
+      <li>Para a enquete (Presômetro) usamos <strong>um cookie</strong> com um identificador aleatório, só para permitir <strong>um voto por dia por navegador</strong>.</li>
+      <li>Guardamos o seu voto (sim ou não), o dia e um código criptográfico derivado desse identificador. <strong>Não guardamos o identificador em si, nem o seu IP.</strong></li>
+      <li>É uma enquete informal, sem valor estatístico, e o limite de um voto por dia pode ser contornado.</li>
+    </ul>
+
+    <h2>Quem é o responsável</h2>
+    <p>
+      O responsável pelo tratamento (controlador) é <strong>{site.operatorName}</strong>.
+      Para qualquer pedido sobre dados pessoais, escreva para <strong>{site.contactEmail}</strong>.
+    </p>
+
+    <h2>Que dados tratamos</h2>
+    <table class="prose__table">
+      <thead><tr><th scope="col">O quê</th><th scope="col">Para quê</th><th scope="col">Detalhes</th></tr></thead>
+      <tbody>
+        <tr>
+          <th scope="row">Cookie <code>fjfp_vid</code></th>
+          <td>Reconhecer o seu navegador para limitar a um voto por dia.</td>
+          <td>Identificador aleatório assinado, sem relação com você. Dura até 400 dias ou até você apagá-lo. É <em>HttpOnly</em> e só é enviado nas chamadas da enquete (<code>/api</code>); não é usado para rastreamento.</td>
+        </tr>
+        <tr>
+          <th scope="row">Seu voto</th>
+          <td>Contar os resultados da enquete.</td>
+          <td>Guardamos: enquete, escolha (sim/não), dia (horário de Brasília), data e hora do voto e um código (HMAC) calculado a partir do identificador com uma chave secreta do servidor. Com esse código não é possível descobrir o identificador original.</td>
+        </tr>
+        <tr>
+          <th scope="row">Dados técnicos de conexão</th>
+          <td>Entregar o site e protegê-lo contra abuso.</td>
+          <td>Como em qualquer site, a Cloudflare (nossa hospedagem) processa dados como endereço IP e tipo de navegador ao entregar as páginas. Para limitar abuso, usamos uma versão embaralhada do IP apenas na memória do limitador de requisições; <strong>nós não a gravamos em nosso banco de dados</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Não coletamos nome, e-mail, localização, contatos nem conteúdo do seu dispositivo, e não vendemos dados.</p>
+
+    <h2>Base legal (LGPD)</h2>
+    <p>
+      Tratamos esses dados com base no <strong>legítimo interesse</strong> (art. 7º, IX, da Lei 13.709/2018): garantir que a enquete funcione
+      e que cada navegador vote uma vez por dia, com o mínimo de dados necessário. O cookie é estritamente necessário para
+      essa função, por isso não há banner de consentimento; se você preferir não ter o cookie, basta bloquear ou apagar — o site continua funcionando, apenas sem a possibilidade de votar.
+    </p>
+
+    <h2>Com quem compartilhamos</h2>
+    <p>
+      Usamos a <strong>Cloudflare</strong> (hospedagem, rede de distribuição, banco de dados e proteção contra abuso) como operadora.
+      Ela pode tratar dados fora do Brasil, o que caracteriza transferência internacional de dados (LGPD, art. 33). Não há outros destinatários.
+    </p>
+
+    <h2>Por quanto tempo guardamos</h2>
+    <ul>
+      <li><strong>Votos e códigos:</strong> enquanto a enquete estiver aberta e por mais {site.voteRetentionDaysAfterClose} dias depois do encerramento. Depois, apagamos os códigos e mantemos apenas os totais diários (sem qualquer ligação com navegadores).</li>
+      <li><strong>Cookie:</strong> até 400 dias, ou até você apagá-lo.</li>
+      <li><strong>Registros técnicos da hospedagem:</strong> pelo prazo definido pela Cloudflare.</li>
+    </ul>
+
+    <h2>Seus direitos</h2>
+    <p>Nos termos do art. 18 da LGPD, você pode pedir confirmação do tratamento, acesso, correção, anonimização, eliminação, informação sobre compartilhamento e revogação, quando aplicável. Escreva para <strong>{site.contactEmail}</strong>.</p>
+    <p>
+      <strong>Uma limitação prática:</strong> como não guardamos o identificador original, não conseguimos localizar o seu voto a partir de dados pessoais
+      (como nome ou e-mail), e o voto não pode ser ligado a você. Você controla o cookie e pode apagá-lo a qualquer momento nas configurações do navegador;
+      isso também permite votar de novo no mesmo dia. Se não ficar satisfeito, você pode reclamar à
+      Autoridade Nacional de Proteção de Dados (ANPD).
+    </p>
+
+    <h2>Segurança</h2>
+    <p>
+      O site usa HTTPS. A chave que protege os códigos de voto fica apenas no servidor, nunca no navegador nem no código público.
+      Aplicamos limites de requisições e verificações de origem para dificultar abusos. Nenhum sistema é totalmente invulnerável;
+      se houver incidente relevante, comunicaremos conforme a lei.
+    </p>
+
+    <h2>Crianças</h2>
+    <p>O site não é direcionado a crianças e não pede dados de ninguém.</p>
+
+    <h2>Mudanças nesta política</h2>
+    <p>Se algo mudar (por exemplo, se passarmos a usar análise de audiência), atualizaremos esta página e a data acima.</p>
+
+    <p class="prose__back"><a href="/">← Voltar ao início</a></p>
+  </article>
+</Base>

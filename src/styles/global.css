@@ -133,6 +133,30 @@ a { color: inherit; }
 a.news__title:hover { text-decoration: underline; }
 .news__source { display: block; margin-top: 2px; font-size: .78rem; color: var(--muted); }
 
+/* ---------- long-form text (privacy) ---------- */
+.prose { max-width: 72ch; margin: 0 auto; padding: 8px 0 56px; }
+.prose h1 { margin: 12px 0 4px; font-size: clamp(1.6rem, 5vw, 2.2rem); line-height: 1.15; letter-spacing: -.01em; }
+.prose h2 { margin: 32px 0 8px; font-size: 1.1rem; }
+.prose p, .prose li { font-size: 1rem; line-height: 1.6; }
+.prose ul { padding-left: 1.2em; }
+.prose li { margin: 6px 0; }
+.prose code { font-size: .88em; background: #efefe9; padding: 1px 5px; border-radius: 4px; }
+.prose__meta { margin: 0 0 16px; color: var(--muted); font-size: .85rem; }
+.prose__draft { margin: 0 0 16px; padding: 12px 14px; border: 1px dashed var(--red); border-radius: var(--radius); color: var(--red); background: #fff; font-size: .9rem; }
+.prose__table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: .92rem; }
+.prose__table th, .prose__table td { text-align: left; vertical-align: top; padding: 10px 12px; border-top: 1px solid var(--border); }
+.prose__table thead th { border-top: 0; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.prose__table tbody th { font-weight: 700; white-space: nowrap; }
+.prose__back { margin-top: 32px; }
+@media (max-width: 700px) {
+  /* stack the table so nothing scrolls sideways */
+  .prose__table, .prose__table tbody, .prose__table tr, .prose__table th, .prose__table td { display: block; width: 100%; }
+  .prose__table thead { position: absolute; left: -9999px; }
+  .prose__table tr { border-top: 1px solid var(--border); padding: 10px 0; }
+  .prose__table th, .prose__table td { border: 0; padding: 2px 0; white-space: normal !important; }
+  .prose__table tbody th { font-size: 1rem; }
+}
+
 /* ---------- footer ---------- */
 .site-footer { display: grid; gap: 16px; border-top: 1px solid var(--border); padding: 24px 0 48px; font-size: .82rem; color: var(--muted); scroll-margin-top: 16px; }
 .site-footer p { margin: 0 0 6px; }

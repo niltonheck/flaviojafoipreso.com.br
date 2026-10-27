@@ -1,0 +1,31 @@
+---
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { resolveConfig } from '../lib/config';
+import '../styles/global.css';
+
+interface Props { title: string; description: string }
+const { title, description } = Astro.props;
+const cfg = resolveConfig(import.meta.env);
+---
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#fafaf7" />
+    {cfg.mode !== 'production' && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="hero-page">
+    {cfg.mode === 'staging' && <div class="env-banner" role="note">Ambiente de teste — enquete de teste, não é o site oficial</div>}
+    <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+    <div class="shell">
+      <SiteHeader />
+      <main id="conteudo"><slot /></main>
+      <SiteFooter demo={cfg.mode === 'demo'} maxAgeHours={cfg.statusMaxAgeHours} pollMode={cfg.pollMode} />
+    </div>
+  </body>
+</html>

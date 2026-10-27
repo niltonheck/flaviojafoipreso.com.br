@@ -1,39 +1,20 @@
 ---
-import SiteHeader from '../components/SiteHeader.astro';
+import Base from '../layouts/Base.astro';
 import StatusHero from '../components/StatusHero.astro';
 import Presometro from '../components/Presometro.astro';
 import NewsList from '../components/NewsList.astro';
-import SiteFooter from '../components/SiteFooter.astro';
 import { loadContent } from '../lib/content';
-import '../styles/global.css';
 
 const c = await loadContent();
 const demo = c.mode === 'demo';
 ---
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Flávio Já Foi Preso? — Sátira política</title>
-    <meta name="description" content="Flávio Bolsonaro já foi preso? Site de sátira política com uma resposta simples e um Presômetro informal. Não é fonte oficial." />
-    <meta name="theme-color" content="#fafaf7" />
-    {c.mode !== 'production' && <meta name="robots" content="noindex, nofollow" />}
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  </head>
-  <body class="hero-page">
-    {c.mode === 'staging' && <div class="env-banner" role="note">Ambiente de teste — enquete de teste, não é o site oficial</div>}
-    <a class="skip" href="#conteudo">Pular para o conteúdo</a>
-    <div class="shell">
-      <SiteHeader />
-      <main id="conteudo">
-        <StatusHero record={c.record} resolved={c.resolved} checkedAtLabel={c.checkedAtLabel} maxAgeHours={c.statusMaxAgeHours} demo={demo} />
-        <div class="lower">
-          <Presometro poll={c.poll} pollMode={c.pollMode} demoCounts={c.demoCounts} />
-          <NewsList items={c.news} demo={demo} />
-        </div>
-      </main>
-      <SiteFooter demo={demo} maxAgeHours={c.statusMaxAgeHours} pollMode={c.pollMode} />
-    </div>
-  </body>
-</html>
+<Base
+  title="Flávio Já Foi Preso? — Sátira política"
+  description="Flávio Bolsonaro já foi preso? Site de sátira política com uma resposta simples e um Presômetro informal. Não é fonte oficial."
+>
+  <StatusHero record={c.record} resolved={c.resolved} checkedAtLabel={c.checkedAtLabel} maxAgeHours={c.statusMaxAgeHours} demo={demo} />
+  <div class="lower">
+    <Presometro poll={c.poll} pollMode={c.pollMode} demoCounts={c.demoCounts} />
+    <NewsList items={c.news} demo={demo} />
+  </div>
+</Base>

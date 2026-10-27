@@ -24,6 +24,7 @@ const { demo, maxAgeHours, pollMode } = Astro.props;
     <p class="site-footer__lead"><strong>Presômetro</strong></p>
     {pollMode === 'mock'
       ? <p>Enquete informal e simulada, sem valor estatístico. Nenhum voto é enviado ou contado publicamente.</p>
-      : <p>Enquete informal, voluntária e não científica. Para limitar a um voto por dia por navegador, guardamos um identificador anônimo em um cookie; não há contas nem rastreamento de terceiros.</p>}
+      : <p>Enquete informal, voluntária e não científica. Para limitar a um voto por dia por navegador, guardamos um identificador aleatório em um cookie; não há contas nem rastreamento de terceiros.</p>}
+    <p><a href="/privacidade">Política de privacidade</a></p>
   </div>
 </footer>

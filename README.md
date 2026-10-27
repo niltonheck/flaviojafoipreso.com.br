@@ -21,6 +21,13 @@ Modos (`--mode`): `demo` (fixtures em `src/data/fixtures/demo/`, enquete mock), 
 Produção nunca carrega fixtures nem o mock da enquete: `PUBLIC_POLL_MODE=mock` em produção quebra o build, e
 `scripts/check-dist.ts` confere o HTML gerado. Em produção o Presômetro usa a API real; se ela falhar, mostra "temporariamente indisponível". Fluxo editorial: [`docs/EDITORIAL.md`](docs/EDITORIAL.md).
 
+## Antes de publicar em produção
+
+- `src/data/site.json`: preencha `operatorName` e `contactEmail` (política de privacidade em `/privacidade`).
+  `npm run build` (produção) **falha** enquanto houver `[PREENCHER]` no site.
+- O texto da política é um rascunho e precisa de revisão jurídica.
+- A regra de retenção (votos + 90 dias, depois só totais) ainda não tem o job que a executa (PR 4).
+
 ## Estrutura
 
 ```
