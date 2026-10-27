@@ -1,0 +1,27 @@
+---
+interface Props { demo: boolean; maxAgeHours: number }
+const { demo, maxAgeHours } = Astro.props;
+---
+<footer class="site-footer" id="sobre">
+  <div class="site-footer__col">
+    <p class="site-footer__lead"><strong>Site de sátira política. Não é fonte oficial.</strong></p>
+    <p>
+      A pergunta é uma piada; o que está em jogo, não. Nenhuma informação aqui deve ser lida como
+      reportagem. Investigação, acusação, decisão judicial e prisão são coisas diferentes, e uma não
+      implica a outra.
+    </p>
+  </div>
+  <div class="site-footer__col">
+    <p class="site-footer__lead"><strong>Metodologia</strong></p>
+    <p>
+      O “NÃO.” só aparece com status verificado e data de checagem; sem isso, mostramos “NÃO
+      VERIFICADO”. O status é conferido manualmente em fontes primárias e veículos de imprensa
+      credíveis, com links, e expira após {maxAgeHours} horas sem nova verificação.
+      {demo && <> Nesta versão tudo é conteúdo de demonstração.</>}
+    </p>
+  </div>
+  <div class="site-footer__col">
+    <p class="site-footer__lead"><strong>Presômetro</strong></p>
+    <p>Enquete informal e simulada, sem valor estatístico. Nenhum voto é enviado ou contado publicamente.</p>
+  </div>
+</footer>

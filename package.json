@@ -1,0 +1,26 @@
+{
+  "name": "flaviojafoipreso-prototypes",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev --mode demo",
+    "validate": "node scripts/validate-content.ts",
+    "test": "vitest run",
+    "build": "npm run validate && astro check && astro build --mode production && node scripts/check-dist.ts production",
+    "build:demo": "npm run validate && astro check && astro build --mode demo && node scripts/check-dist.ts demo",
+    "build:staging": "npm run validate && astro check && astro build --mode staging && node scripts/check-dist.ts staging",
+    "preview": "astro preview",
+    "check": "astro check",
+    "news:add": "node scripts/editor.ts news",
+    "status:set": "node scripts/editor.ts status"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.12",
+    "astro": "^7.4.1",
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.5"
+  }
+}

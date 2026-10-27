@@ -1,0 +1,5 @@
+[
+  { "id": "demo-1", "headline": "[Manchete ilustrativa 01] Texto de exemplo para o layout", "publishedAt": "2026-10-26", "source": { "publisher": "Veículo ilustrativo", "url": "" }, "reviewedAt": "2026-10-27T09:00:00-03:00", "reviewedBy": "demo" },
+  { "id": "demo-2", "headline": "[Manchete ilustrativa 02] Outra linha de exemplo, um pouco mais longa para testar quebra", "publishedAt": "2026-10-18", "source": { "publisher": "Veículo ilustrativo", "url": "" }, "reviewedAt": "2026-10-27T09:00:00-03:00", "reviewedBy": "demo" },
+  { "id": "demo-3", "headline": "[Manchete ilustrativa 03] Terceiro item de demonstração", "publishedAt": "2026-10-03", "source": { "publisher": "Veículo ilustrativo", "url": "" }, "reviewedAt": "2026-10-27T09:00:00-03:00", "reviewedBy": "demo" }
+]

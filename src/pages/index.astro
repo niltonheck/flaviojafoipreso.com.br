@@ -1,0 +1,39 @@
+---
+import SiteHeader from '../components/SiteHeader.astro';
+import StatusHero from '../components/StatusHero.astro';
+import Presometro from '../components/Presometro.astro';
+import NewsList from '../components/NewsList.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { loadContent } from '../lib/content';
+import '../styles/global.css';
+
+const c = await loadContent();
+const demo = c.mode === 'demo';
+// The demo poll (and its script) is only ever imported for mock mode, so it cannot ship to production.
+const PresometroMock = c.pollMode === 'mock' && c.demoCounts ? (await import('../components/PresometroMock.astro')).default : null;
+---
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flávio Já Foi Preso? — Sátira política</title>
+    <meta name="description" content="Flávio Bolsonaro já foi preso? Site de sátira política com uma resposta simples e um Presômetro informal. Não é fonte oficial." />
+    <meta name="theme-color" content="#fafaf7" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="hero-page">
+    <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+    <div class="shell">
+      <SiteHeader />
+      <main id="conteudo">
+        <StatusHero record={c.record} resolved={c.resolved} checkedAtLabel={c.checkedAtLabel} maxAgeHours={c.statusMaxAgeHours} demo={demo} />
+        <div class="lower">
+          {PresometroMock && c.demoCounts ? <PresometroMock poll={c.poll} demoCounts={c.demoCounts} /> : <Presometro poll={c.poll} />}
+          <NewsList items={c.news} demo={demo} />
+        </div>
+      </main>
+      <SiteFooter demo={demo} maxAgeHours={c.statusMaxAgeHours} />
+    </div>
+  </body>
+</html>

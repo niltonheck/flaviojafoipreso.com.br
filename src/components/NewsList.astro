@@ -1,0 +1,30 @@
+---
+import type { NewsItem } from '../lib/types';
+import { fmtDate } from '../lib/format';
+
+interface Props { items: NewsItem[]; demo: boolean }
+const { items, demo } = Astro.props;
+---
+<section class="card news" aria-labelledby="noticias-titulo">
+  <div class="card__head">
+    <h2 id="noticias-titulo" class="card__title">Últimas notícias</h2>
+    {demo && <span class="tag">DEMONSTRAÇÃO</span>}
+  </div>
+  {items.length === 0 ? (
+    <p class="news__empty">Nenhuma notícia verificada no momento. Só publicamos o que foi conferido e tem link para a fonte.</p>
+  ) : (
+    <ol class="news__list">
+      {items.map((n) => (
+        <li class="news__item">
+          <time class="news__date" datetime={n.publishedAt}>{fmtDate(n.publishedAt)}</time>
+          <div>
+            {n.source.url
+              ? <a class="news__title" href={n.source.url} target="_blank" rel="noopener noreferrer">{n.headline}</a>
+              : <span class="news__title">{n.headline}</span>}
+            <span class="news__source">{n.source.publisher}</span>
+          </div>
+        </li>
+      ))}
+    </ol>
+  )}
+</section>

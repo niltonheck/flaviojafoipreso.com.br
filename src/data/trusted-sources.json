@@ -1,0 +1,17 @@
+{
+  "_note": "Domínios aceitos como fonte (inclui subdomínios). Para aceitar um novo veículo, adicione o domínio aqui em um PR.",
+  "domains": [
+    "globo.com",
+    "uol.com.br",
+    "estadao.com.br",
+    "cnnbrasil.com.br",
+    "poder360.com.br",
+    "agenciabrasil.ebc.com.br",
+    "bbc.com",
+    "reuters.com",
+    "apnews.com",
+    "jus.br",
+    "gov.br",
+    "leg.br"
+  ]
+}

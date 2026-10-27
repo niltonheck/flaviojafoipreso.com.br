@@ -1,0 +1,12 @@
+---
+import type { PollConfig } from '../lib/types';
+
+interface Props { poll: PollConfig }
+const { poll } = Astro.props;
+---
+<section class="card presometro" aria-labelledby="presometro-titulo">
+  <h2 id="presometro-titulo" class="card__title">Presômetro</h2>
+  <p class="presometro__question">{poll.question}</p>
+  <p class="presometro__unavailable" role="status">Presômetro temporariamente indisponível.</p>
+  <p class="presometro__note">Enquete informal, voluntária e não científica.</p>
+</section>

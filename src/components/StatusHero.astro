@@ -1,0 +1,85 @@
+---
+import type { StatusRecord } from '../lib/types';
+import { ANSWER_TEXT, type ResolvedStatus } from '../lib/status';
+
+interface Props {
+  record: StatusRecord;
+  resolved: ResolvedStatus;
+  checkedAtLabel: string | null;
+  maxAgeHours: number;
+  demo: boolean;
+}
+const { record, resolved, checkedAtLabel, maxAgeHours, demo } = Astro.props;
+const status = resolved.status;
+const NOTE: Record<string, string> = {
+  unverified: 'Ainda sem verificação confiável.',
+  'never-checked': 'Ainda sem verificação confiável.',
+  stale: 'A última verificação expirou, então a resposta está suspensa.',
+};
+---
+<section
+  class="hero"
+  aria-labelledby="pergunta"
+  data-status={status}
+  data-declared-status={record.status}
+  data-checked-at={record.checkedAt ?? ''}
+  data-max-age-hours={maxAgeHours}
+>
+  <div class="hero__portrait" aria-hidden="true">
+    <img
+      src="/images/portrait-480.webp"
+      srcset="/images/portrait-320.webp 320w, /images/portrait-480.webp 480w"
+      sizes="(min-width: 900px) 160px, 120px"
+      alt=""
+      width="480"
+      height="440"
+      decoding="async"
+      onerror="this.parentElement.hidden=true"
+    />
+  </div>
+  <h1 id="pergunta" class="hero__question">Flávio Bolsonaro já foi preso?</h1>
+  <p class="hero__answer" role="status" data-answer>{ANSWER_TEXT[status]}</p>
+  <p class="hero__meta">
+    <span data-note>{status === 'unverified' ? NOTE[resolved.reason] : 'Até onde foi possível verificar.'}</span>
+    {checkedAtLabel && (
+      <>
+        <span class="sep" aria-hidden="true">·</span>
+        <span>Última verificação: <time datetime={record.checkedAt!}>{checkedAtLabel} (Brasília)</time></span>
+      </>
+    )}
+    <span class="sep" aria-hidden="true">·</span>
+    <a href="#sobre">Como verificamos</a>
+  </p>
+  {record.evidence.length > 0 && (
+    <p class="hero__sources">
+      Fontes:
+      {record.evidence.map((s, i) => (
+        <>{i > 0 ? ', ' : ' '}<a href={s.url} target="_blank" rel="noopener noreferrer">{s.publisher}</a></>
+      ))}
+    </p>
+  )}
+  {demo && <p class="hero__demo">Exibição de demonstração — conteúdo local, sem verificação editorial.</p>}
+  {status !== 'unverified' && (
+    <noscript>
+      <p class="hero__demo">
+        Status válido em {checkedAtLabel} (Brasília). Ative o JavaScript para confirmar que ele ainda está atualizado.
+      </p>
+    </noscript>
+  )}
+</section>
+
+<script>
+  // Freshness guard (SPEC C §3): the static HTML cannot age itself, so re-check in the browser.
+  import { ANSWER_TEXT, resolveStatus } from '../lib/status';
+
+  const hero = document.querySelector<HTMLElement>('.hero[data-declared-status]');
+  if (hero) {
+    const declared = hero.dataset.declaredStatus as 'yes' | 'no' | 'unverified';
+    const r = resolveStatus(declared, hero.dataset.checkedAt || null, new Date(), Number(hero.dataset.maxAgeHours));
+    if (r.status !== hero.dataset.status) {
+      hero.dataset.status = r.status;
+      hero.querySelector('[data-answer]')!.textContent = ANSWER_TEXT[r.status];
+      hero.querySelector('[data-note]')!.textContent = 'A última verificação expirou, então a resposta está suspensa.';
+    }
+  }
+</script>
