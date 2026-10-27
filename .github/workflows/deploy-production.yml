@@ -4,7 +4,6 @@ name: Deploy production
 #  1. GitHub environment "production" must have Required reviewers (Settings -> Environments).
 #  2. You must type DEPLOY in the confirmation input.
 # Needs environment secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID and variable PRODUCTION_URL.
-# This workflow never sets ALLOW_PLACEHOLDERS, so the build fails if the privacy contact is not confirmed.
 on:
   workflow_dispatch:
     inputs:

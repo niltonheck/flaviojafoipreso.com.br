@@ -42,18 +42,13 @@ if (mode === 'production') {
 if (mode === 'staging') more.push(['banner de ambiente de teste', pageHtml.includes('Ambiente de teste')]);
 if (mode !== 'staging') more.push(['sem banner de teste', !pageHtml.includes('Ambiente de teste')]);
 
-// The privacy page must exist, and production must not ship with unfilled placeholders (operator name/email).
+// The privacy page must exist, and production must not ship with unfilled [PREENCHER] placeholders.
 const privacy = read('privacidade/index.html');
-more.push(['página /privacidade existe', privacy.includes('Política de privacidade')]);
-// CI sets ALLOW_PLACEHOLDERS=1 so it can still run every other production check; a real release never does.
+more.push(['página /privacidade existe', privacy.includes('Privacidade e como a enquete funciona')]);
 more.push(['og:image absoluto e neutro (sem resposta no título)', /property="og:image" content="https:\/\/[^"]+\/og-image\.png"/.test(pageHtml) && !/og:title" content="[^"]*(NÃO|SIM)\b/.test(pageHtml)]);
 if (mode === 'production') more.push(['canonical presente só em produção', pageHtml.includes('rel="canonical"') && read('sitemap.xml').includes('<loc>https://flaviojafoipreso.com.br/</loc>')]);
 if (mode !== 'production') more.push(['sem canonical fora de produção', !pageHtml.includes('rel="canonical"')]);
-if (mode === 'production' && process.env.ALLOW_PLACEHOLDERS !== '1') more.push(['sem campos [PREENCHER] no site', !everythingHtml().includes('[PREENCHER')]);
-
-// The privacy contact must be a real, working address (LGPD requires a channel for data-subject requests).
-const siteCfg = JSON.parse(readFileSync(new URL('../src/data/site.json', import.meta.url), 'utf8'));
-if (mode === 'production' && process.env.ALLOW_PLACEHOLDERS !== '1') more.push(['e-mail de privacidade confirmado (site.json: contactEmailConfirmed)', siteCfg.contactEmailConfirmed === true]);
+if (mode === 'production') more.push(['sem campos [PREENCHER] no site', !everythingHtml().includes('[PREENCHER')]);
 
 // No secret-looking PUBLIC_ variables, and no secret value or name anywhere in the output.
 const SECRETISH = /SECRET|TOKEN|PASSWORD|PRIVATE|API_?KEY/i;

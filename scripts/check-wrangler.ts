@@ -18,7 +18,6 @@ else {
   }
   if (!env.triggers?.crons?.length) problems.push('cron da retenção (triggers.crons) ausente: sem ele os códigos de voto nunca são apagados');
   if (!env.ratelimits?.some((r: { name: string }) => r.name === 'VOTE_LIMITER')) problems.push('binding VOTE_LIMITER ausente');
-  if (envName === 'production' && process.env.ALLOW_PLACEHOLDERS) problems.push('ALLOW_PLACEHOLDERS está definido: um release de produção nunca pode usá-lo');
   if (envName === 'production' && env.workers_dev !== false) problems.push('produção não pode expor workers.dev');
   if (envName === 'production' && !env.routes?.length) problems.push('produção sem rota/domínio');
   if (envName === 'staging' && env.routes?.length) problems.push('staging não deve ter rota de domínio público');

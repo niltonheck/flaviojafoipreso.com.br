@@ -21,9 +21,5 @@ jobs:
       - run: npm test
       # Production build: validates content, type-checks, builds, writes headers/robots,
       # and fails if demo content, mock poll code or secrets leaked into dist/.
-      # ALLOW_PLACEHOLDERS lets CI run the production build while the privacy page's operator
-      # name/e-mail are still unfilled. A real production release must not set it.
       - run: npm run build
-        env:
-          ALLOW_PLACEHOLDERS: '1'
       - run: npm run build:staging

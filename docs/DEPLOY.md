@@ -103,13 +103,11 @@ and secret, daily retention cron). Nothing is created or deployed until you do t
    you → in Registro.br, change the domain's DNS servers to those. Wait until Cloudflare shows the zone as Active.
    (`.com.br` supports DNSSEC: if it is enabled at Registro.br, follow Cloudflare's DNSSEC steps or disable it before
    switching, otherwise the domain can stop resolving.)
-2. **Privacy contact must exist.** Enable Cloudflare **Email Routing** and create `privacidade@flaviojafoipreso.com.br`
-   forwarding to an inbox you read, then set `"contactEmailConfirmed": true` in `src/data/site.json`. The production
-   build refuses to run until you do.
-3. **Token permissions.** The OAuth login used so far may lack zone/DNS scopes. If `wrangler deploy` cannot attach the
+2. **Token permissions.** The OAuth login used so far may lack zone/DNS scopes. If `wrangler deploy` cannot attach the
    custom domain, create an API token with Workers Scripts:Edit, D1:Edit, Zone:Read and Workers Routes/Custom
    Domains permissions, and use it as `CLOUDFLARE_API_TOKEN`.
-4. **Legal review** of `/privacidade` (it is a draft).
+3. *(Recommended, not a build blocker)* a quick legal read of `/privacidade`, which is now a short plain-language
+   note rather than a full LGPD policy.
 
 ### Go-live (once, in order)
 ```bash

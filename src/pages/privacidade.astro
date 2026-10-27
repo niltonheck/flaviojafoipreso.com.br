@@ -1,117 +1,59 @@
 ---
 import Base from '../layouts/Base.astro';
 import site from '../data/site.json';
-import { resolveConfig } from '../lib/config';
 import { fmtDate } from '../lib/format';
 
-const draft = resolveConfig(import.meta.env).mode !== 'production';
 const updated = fmtDate(site.privacyUpdatedAt);
 ---
 <Base
-  title="Política de privacidade — Flávio Já Foi Preso?"
-  description="Quais dados o Flávio Já Foi Preso? trata, para quê, por quanto tempo e como exercer seus direitos (LGPD)."
+  title="Privacidade e como a enquete funciona — Flávio Já Foi Preso?"
+  description="Como funciona o Presômetro: voto anônimo, um voto por dia, o que fica guardado e por quanto tempo."
 >
   <article class="prose">
-    <h1>Política de privacidade</h1>
-    <p class="prose__meta">Atualizada em <time datetime={site.privacyUpdatedAt}>{updated}</time></p>
-    {draft && (
-      <p class="prose__draft" role="note">
-        <strong>Rascunho.</strong> Este texto ainda precisa de revisão jurídica e dos campos “[PREENCHER]” antes da publicação em produção.
-      </p>
-    )}
-
-    <h2>Em resumo</h2>
-    <ul>
-      <li>Não há contas, cadastro, e-mail, anúncios, análise de audiência nem scripts ou fontes de terceiros.</li>
-      <li>Para a enquete (Presômetro) usamos <strong>um cookie</strong> com um identificador aleatório, só para permitir <strong>um voto por dia por navegador</strong>.</li>
-      <li><strong>Seu voto é anônimo.</strong> Guardamos a escolha (sim ou não), o dia e um código embaralhado que muda todo dia e é apagado em poucos dias. <strong>Não guardamos o identificador em si, nem o seu IP</strong>, e não há como ligar o voto a você nem votos de dias diferentes ao mesmo navegador.</li>
-      <li>É uma enquete informal, sem valor estatístico, e o limite de um voto por dia pode ser contornado.</li>
-    </ul>
+    <h1>Privacidade e como a enquete funciona</h1>
+    <p class="prose__meta">Atualizado em <time datetime={site.privacyUpdatedAt}>{updated}</time></p>
 
     <h2 id="anonimato">Seu voto é anônimo</h2>
-    <p>Na prática, isto significa que:</p>
     <ul>
-      <li>não pedimos nome, e-mail, telefone nem login, e não guardamos o seu endereço IP;</li>
-      <li>o que fica registrado de cada voto é só: qual enquete, a escolha (sim/não), o dia e a hora, e um <strong>código</strong>;</li>
-      <li>esse código existe apenas para impedir um segundo voto <em>no mesmo dia</em> pelo mesmo navegador. Ele é calculado com uma chave secreta que só o servidor tem, <strong>muda todos os dias</strong> e não pode ser revertido para o identificador do cookie;</li>
-      <li>por isso não é possível ligar o voto a uma pessoa, nem saber o que um mesmo navegador votou em dias diferentes;</li>
-      <li>e o código é <strong>apagado em até {site.codeRetentionHours} horas</strong> depois do fim do dia: o que permanece são só os totais diários.</li>
+      <li>Não pedimos nome, e-mail, telefone nem login, e não guardamos o seu endereço IP.</li>
+      <li>De cada voto fica só: a escolha (sim ou não), o dia, a hora e um <strong>código</strong>.</li>
+      <li>
+        O código serve apenas para impedir um segundo voto <em>no mesmo dia</em> pelo mesmo navegador. Ele <strong>muda todo dia</strong>,
+        é calculado com uma chave secreta que só o servidor tem e não pode ser revertido. Por isso não dá para ligar um voto a uma pessoa,
+        nem saber o que um mesmo navegador votou em dias diferentes.
+      </li>
+      <li>
+        O código é <strong>apagado em até {site.codeRetentionHours} horas</strong> depois do fim do dia. O que permanece são só os
+        <strong>totais por dia</strong> (quantos votaram sim e quantos votaram não).
+      </li>
     </ul>
     <p>
-      Para ser exato: o código é um <em>pseudônimo</em>, não uma ausência total de dado. Só seria possível confirmar o voto de um navegador específico
-      quem tivesse, ao mesmo tempo, o cookie daquele navegador, o banco de dados e a chave secreta. Nós não temos o cookie de ninguém.
+      Para ser preciso: o código é um pseudônimo, não a ausência total de dado. Só quem tivesse, ao mesmo tempo, o cookie do seu navegador,
+      o banco de dados e a chave secreta conseguiria confirmar um voto específico — e nós não temos o cookie de ninguém.
     </p>
 
-    <h2>Quem é o responsável</h2>
+    <h2>O que o site guarda no seu navegador</h2>
     <p>
-      O responsável pelo tratamento (controlador) é <strong>{site.operatorName}</strong>.
-      Para qualquer pedido sobre dados pessoais, escreva para <strong>{site.contactEmail}</strong>.
+      Um único cookie, <code>fjfp_vid</code>: um número aleatório assinado, usado só para a regra de um voto por dia. Ele dura até 400 dias ou até
+      você apagá-lo, só é enviado nas chamadas da enquete e não é usado para rastrear você. Se apagá-lo, o site continua funcionando; você só
+      poderá votar de novo no mesmo dia.
     </p>
 
-    <h2>Que dados tratamos</h2>
-    <table class="prose__table">
-      <thead><tr><th scope="col">O quê</th><th scope="col">Para quê</th><th scope="col">Detalhes</th></tr></thead>
-      <tbody>
-        <tr>
-          <th scope="row">Cookie <code>fjfp_vid</code></th>
-          <td>Reconhecer o seu navegador para limitar a um voto por dia.</td>
-          <td>Identificador aleatório assinado, sem relação com você. Dura até 400 dias ou até você apagá-lo. É <em>HttpOnly</em> e só é enviado nas chamadas da enquete (<code>/api</code>); não é usado para rastreamento.</td>
-        </tr>
-        <tr>
-          <th scope="row">Seu voto</th>
-          <td>Contar os resultados da enquete.</td>
-          <td>Guardamos: enquete, escolha (sim/não), dia (horário de Brasília), data e hora do voto e um código (HMAC) calculado a partir do identificador, da enquete e do dia, com uma chave secreta do servidor. O código muda a cada dia e não permite descobrir o identificador original.</td>
-        </tr>
-        <tr>
-          <th scope="row">Dados técnicos de conexão</th>
-          <td>Entregar o site e protegê-lo contra abuso.</td>
-          <td>Como em qualquer site, a Cloudflare (nossa hospedagem) processa dados como endereço IP e tipo de navegador ao entregar as páginas. Para limitar abuso, usamos uma versão embaralhada do IP apenas na memória do limitador de requisições; <strong>nós não a gravamos em nosso banco de dados</strong>.</td>
-        </tr>
-      </tbody>
-    </table>
-    <p>Não coletamos nome, e-mail, localização, contatos nem conteúdo do seu dispositivo, e não vendemos dados.</p>
+    <h2>O que não existe aqui</h2>
+    <p>Contas, cadastro, anúncios, análise de audiência, pixels, e scripts, fontes ou conteúdo de terceiros.</p>
 
-    <h2>Base legal (LGPD)</h2>
+    <h2>Hospedagem</h2>
     <p>
-      Tratamos esses dados com base no <strong>legítimo interesse</strong> (art. 7º, IX, da Lei 13.709/2018): garantir que a enquete funcione
-      e que cada navegador vote uma vez por dia, com o mínimo de dados necessário. O cookie é estritamente necessário para
-      essa função, por isso não há banner de consentimento; se você preferir não ter o cookie, basta bloquear ou apagar — o site continua funcionando, apenas sem a possibilidade de votar.
+      O site roda na Cloudflare, que, como qualquer hospedagem, processa dados técnicos de conexão (como o endereço IP) para entregar as páginas
+      e proteger o serviço contra abuso. Nós não guardamos esses dados em nosso banco nem os usamos para outra finalidade.
     </p>
 
-    <h2>Com quem compartilhamos</h2>
-    <p>
-      Usamos a <strong>Cloudflare</strong> (hospedagem, rede de distribuição, banco de dados e proteção contra abuso) como operadora.
-      Ela pode tratar dados fora do Brasil, o que caracteriza transferência internacional de dados (LGPD, art. 33). Não há outros destinatários.
-    </p>
-
-    <h2>Por quanto tempo guardamos</h2>
+    <h2>Lembretes</h2>
     <ul>
-      <li><strong>Códigos dos votos:</strong> apagados em até {site.codeRetentionHours} horas depois do fim de cada dia (um processo automático roda todo dia). Depois disso, guardamos apenas os <strong>totais por dia</strong> (quantos votaram sim e quantos votaram não), sem qualquer ligação com navegadores.</li>
-      <li><strong>Cookie:</strong> até 400 dias, ou até você apagá-lo.</li>
-      <li><strong>Registros técnicos da hospedagem:</strong> pelo prazo definido pela Cloudflare.</li>
+      <li>É uma enquete informal, voluntária e sem valor estatístico.</li>
+      <li>O limite de um voto por dia vale por navegador e pode ser contornado.</li>
+      <li>O site é sátira política e não é fonte oficial.</li>
     </ul>
-
-    <h2>Seus direitos</h2>
-    <p>Nos termos do art. 18 da LGPD, você pode pedir confirmação do tratamento, acesso, correção, anonimização, eliminação, informação sobre compartilhamento e revogação, quando aplicável. Escreva para <strong>{site.contactEmail}</strong>.</p>
-    <p>
-      <strong>Uma limitação prática:</strong> como não guardamos o identificador original, não conseguimos localizar o seu voto a partir de dados pessoais
-      (como nome ou e-mail), e o voto não pode ser ligado a você. Você controla o cookie e pode apagá-lo a qualquer momento nas configurações do navegador;
-      isso também permite votar de novo no mesmo dia. E, passadas {site.codeRetentionHours} horas do fim do dia, nem o código do seu voto existe mais. Se não ficar satisfeito, você pode reclamar à
-      Autoridade Nacional de Proteção de Dados (ANPD).
-    </p>
-
-    <h2>Segurança</h2>
-    <p>
-      O site usa HTTPS. A chave que protege os códigos de voto fica apenas no servidor, nunca no navegador nem no código público.
-      Aplicamos limites de requisições e verificações de origem para dificultar abusos. Nenhum sistema é totalmente invulnerável;
-      se houver incidente relevante, comunicaremos conforme a lei.
-    </p>
-
-    <h2>Crianças</h2>
-    <p>O site não é direcionado a crianças e não pede dados de ninguém.</p>
-
-    <h2>Mudanças nesta política</h2>
-    <p>Se algo mudar (por exemplo, se passarmos a usar análise de audiência), atualizaremos esta página e a data acima.</p>
 
     <p class="prose__back"><a href="/">← Voltar ao início</a></p>
   </article>
