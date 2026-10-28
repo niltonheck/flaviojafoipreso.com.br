@@ -14,7 +14,7 @@
   // 05:00 UTC (02:00 Brasília): vote-code retention. Every hour: automated editorial job (docs/AUTOMATION.md), which stays
   // inert unless AUTOMATION_ENABLED is "true". Secrets (never in git): GEMINI_API_KEY, ALERT_TO.
   "triggers": { "crons": ["0 5 * * *", "0 * * * *"] },
-  "vars": { "AUTOMATION_ENABLED": "false", "GEMINI_MODEL": "gemini-2.5-flash", "ALERT_FROM": "alertas@flaviojafoipreso.com.br" },
+  "vars": { "AUTOMATION_ENABLED": "false", "GEMINI_MODEL": "gemini-3.8-flash", "ALERT_FROM": "alertas@flaviojafoipreso.com.br" },
   "send_email": [{ "name": "ALERTS" }],
   "d1_databases": [
     {
@@ -36,7 +36,7 @@
       "preview_urls": false,
       "observability": { "enabled": true },
       "triggers": { "crons": ["0 5 * * *", "0 * * * *"] },
-  "vars": { "AUTOMATION_ENABLED": "false", "GEMINI_MODEL": "gemini-2.5-flash", "ALERT_FROM": "alertas@flaviojafoipreso.com.br" },
+  "vars": { "AUTOMATION_ENABLED": "true", "GEMINI_MODEL": "gemini-3.8-flash", "ALERT_FROM": "alertas@flaviojafoipreso.com.br" },
   "send_email": [{ "name": "ALERTS" }],
       "d1_databases": [
         {
@@ -60,7 +60,7 @@
       "routes": [{ "pattern": "flaviojafoipreso.com.br", "custom_domain": true }],
       "observability": { "enabled": true },
       "triggers": { "crons": ["0 5 * * *", "0 * * * *"] },
-  "vars": { "AUTOMATION_ENABLED": "false", "GEMINI_MODEL": "gemini-2.5-flash", "ALERT_FROM": "alertas@flaviojafoipreso.com.br" },
+  "vars": { "AUTOMATION_ENABLED": "false", "GEMINI_MODEL": "gemini-3.8-flash", "ALERT_FROM": "alertas@flaviojafoipreso.com.br" },
   "send_email": [{ "name": "ALERTS" }],
       "d1_databases": [
         {

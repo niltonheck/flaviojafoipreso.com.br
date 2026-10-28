@@ -47,7 +47,8 @@ While a status is `manual`, the job still publishes news but never changes the s
 
 ## Turning it on (staging first)
 1. **Gemini key** (you): create an API key, then `npx wrangler secret put GEMINI_API_KEY --env staging`.
-   Optionally set `GEMINI_MODEL` in `wrangler.jsonc` (default `gemini-2.5-flash`; verify the current model id).
+   The model is pinned to `gemini-3.8-flash` (`GEMINI_MODEL` in `wrangler.jsonc`). Models get retired: when one does,
+   the job fails closed ("NÃO VERIFICADO" + an alert) until you change that variable.
 2. **Email alerts** (you): Cloudflare → Email → Email Routing → enable, add your inbox as a destination and verify it,
    then `npx wrangler secret put ALERT_TO --env staging` (that address). `ALERT_FROM` is `alertas@<your domain>`.
    The destination stays a secret so no personal address lands in the public repo.
@@ -59,7 +60,9 @@ While a status is `manual`, the job still publishes news but never changes the s
 5. Production only after staging behaves for a few days: repeat with `--env production`.
 
 ## Unverified at the time of writing (check before relying on it)
-- The Gemini model id, request format, pricing and free-tier limits (I had no key to test the live call).
+- Gemini pricing and free-tier limits. (The live call itself was tested 2026-10-27 with the real code and real headlines:
+  real coverage -> "no"; a synthetic arrest headline -> "yes" with a quote that verified; a prompt-injection attempt failed.
+  `gemini-2.5-flash` is already retired for new users, hence the pinned `gemini-3.8-flash`.)
 - Whether each publisher serves its RSS to Cloudflare's egress IPs (it worked from a home connection).
 - Workers **Free** CPU limit (10 ms per invocation) vs. parsing six feeds each hour; Workers Paid raises it.
 - Email Routing replaces the "null MX" records Cloudflare added for a send-nothing domain.

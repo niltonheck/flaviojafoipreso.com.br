@@ -28,9 +28,11 @@ describe('wrangler.jsonc', () => {
     for (const env of [cfg, cfg.env.staging, cfg.env.production]) expect(env.triggers.crons).toEqual(['0 5 * * *', '0 * * * *']);
   });
 
-  it('ships with the automation switched OFF and no secrets or personal addresses in the config', () => {
+  it('keeps production automation OFF, and holds no secrets or personal addresses in the config', () => {
+    // Production (and local dev) stay OFF until deliberately enabled; staging runs it for verification.
+    expect(cfg.vars.AUTOMATION_ENABLED).toBe('false');
+    expect(cfg.env.production.vars.AUTOMATION_ENABLED).toBe('false');
     for (const env of [cfg, cfg.env.staging, cfg.env.production]) {
-      expect(env.vars.AUTOMATION_ENABLED).toBe('false');
       expect(env.send_email).toEqual([{ name: 'ALERTS' }]); // no destination_address: that stays a secret
       expect(JSON.stringify(env)).not.toMatch(/ALERT_TO|GEMINI_API_KEY|@gmail|@conbuss/i);
     }

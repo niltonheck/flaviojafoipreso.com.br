@@ -15,12 +15,17 @@ describe('classifyArrest', () => {
     const f = reply({ arrest_reported: 'no', evidence: [] });
     await run(f);
     const [url, init] = f.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toContain('/models/gemini-2.5-flash:generateContent');
+    expect(url).toContain('/models/gemini-3.8-flash:generateContent');
     expect(url).not.toContain('KEY123');
     expect((init.headers as Record<string, string>)['x-goog-api-key']).toBe('KEY123');
     expect(String(init.body)).not.toContain('KEY123');
     const body = JSON.parse(String(init.body));
     expect(body.generationConfig).toMatchObject({ temperature: 0, responseMimeType: 'application/json' });
+  });
+
+  it('ignores "thought" parts and joins the answer text, as returned by newer models', async () => {
+    const f = vi.fn(async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ thought: true, text: 'pensando…' }, { text: '{"arrest_reported":"no",' }, { text: '"evidence":[]}' }] } }] })));
+    expect((await classifyArrest([item()], { apiKey: 'K', fetchFn: f as unknown as typeof fetch })).verdict).toBe('no');
   });
 
   it('returns "no" and "uncertain" as given', async () => {

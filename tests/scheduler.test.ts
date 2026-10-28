@@ -8,7 +8,7 @@ import feeds from '../src/data/feeds.json';
 const geminiOk = (verdict: object) => (): Response => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(verdict) }] } }] }));
 const routes = (items = NORMAL, gemini?: () => Response) => ({
   ...Object.fromEntries(feeds.map((f) => [f.url, allFeeds(items)[Object.keys(allFeeds(items))[0]]])),
-  ...(gemini ? { 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent': gemini } : {}),
+  ...(gemini ? { 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent': gemini } : {}),
 });
 const state = (raw: ReturnType<typeof makeEnv>['raw']) => raw.prepare('SELECT status, mode FROM status_state').get();
 

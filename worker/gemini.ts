@@ -3,7 +3,9 @@ import type { FeedItem } from './feeds.ts';
 export type Verdict = { verdict: 'yes' | 'no' | 'uncertain'; evidence: { url: string; quote: string }[] };
 export class ClassifierError extends Error {}
 
-export const DEFAULT_MODEL = 'gemini-2.5-flash'; // override with the GEMINI_MODEL var; verify the current model id
+// Pinned on purpose (not a "-latest" alias, which can change behavior silently). Verified against the live API on
+// 2026-10-27: gemini-2.5-flash is listed but returns 404 "no longer available to new users". Override with GEMINI_MODEL.
+export const DEFAULT_MODEL = 'gemini-3.8-flash';
 
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
 
@@ -57,8 +59,10 @@ export async function classifyArrest(
 
   let parsed: { arrest_reported?: unknown; evidence?: unknown };
   try {
-    const body = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-    parsed = JSON.parse(body.candidates?.[0]?.content?.parts?.[0]?.text ?? '');
+    const body = (await res.json()) as { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[] };
+    // Newer models may emit "thought" parts before the answer: use only the answer text, in order.
+    const parts = body.candidates?.[0]?.content?.parts ?? [];
+    parsed = JSON.parse(parts.filter((x) => !x.thought).map((x) => x.text ?? '').join(''));
   } catch {
     throw new ClassifierError('malformed-response');
   }
