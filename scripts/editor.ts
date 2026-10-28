@@ -8,7 +8,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { EDITOR } from '../src/lib/config.ts';
-import { brasiliaDay, parseMeta } from '../src/lib/meta.ts';
+import { brasiliaDay, parseMeta, reconcileTimestamp } from '../src/lib/meta.ts';
 import { isTrustedHost, validateNews, validateStatus } from '../src/lib/validate.ts';
 import type { NewsItem, Source, StatusRecord } from '../src/lib/types.ts';
 
@@ -35,6 +35,27 @@ async function inspect(url: string) {
   }
 }
 
+/** The article's publication time as given by an RSS feed (explicit offset), if it appears in one of ours. */
+async function feedTimestamp(url: string): Promise<string | null> {
+  const feeds: { url: string }[] = read('src/data/feeds.json');
+  const want = new URL(url).href;
+  for (const f of feeds) {
+    try {
+      const xml = await (await fetch(f.url, { headers: { 'user-agent': 'Mozilla/5.0 (editor-helper; +local)' }, signal: AbortSignal.timeout(12_000) })).text();
+      for (const m of xml.matchAll(/<item[\s>][\s\S]*?<\/item>/gi)) {
+        const link = /<link[^>]*>([\s\S]*?)<\/link>/i.exec(m[0])?.[1]?.replace(/<!\[CDATA\[|\]\]>/g, '').trim() ?? '';
+        const star = link.lastIndexOf('*http');
+        const href = (() => { try { return new URL(star >= 0 ? link.slice(star + 1) : link).href; } catch { return ''; } })();
+        if (href !== want) continue;
+        const d = /<pubDate>([^<]+)<\/pubDate>/i.exec(m[0])?.[1];
+        const t = d ? Date.parse(d) : NaN;
+        if (!Number.isNaN(t)) return new Date(t).toISOString();
+      }
+    } catch { /* feed unreachable: fall back to the page */ }
+  }
+  return null;
+}
+
 const slug = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
 const publisherFrom = (host: string) => host.replace(/^www\./, '');
 
@@ -58,7 +79,13 @@ if (cmd === 'news') {
   const items: NewsItem[] = read('src/data/news.json');
   if (items.some((n) => n.source.url === url)) die('essa URL já está em news.json');
   const headline = values.headline ?? meta?.title ?? die('não achei o título; use --headline');
-  const publishedAt = values.date ?? meta?.publishedAt ?? die('não achei a data de publicação; use --date YYYY-MM-DD');
+  let publishedAt = values.date;
+  if (!publishedAt) {
+    const r = reconcileTimestamp({ page: meta?.publishedAt ?? null, feed: await feedTimestamp(url), now: new Date() });
+    if (r.error) die(r.error);
+    if (r.note) console.warn(`⚠ ${r.note}`);
+    publishedAt = r.value ?? die('não achei a data de publicação; use --date YYYY-MM-DD');
+  }
   const item: NewsItem = {
     id: `${brasiliaDay(publishedAt)}-${slug(headline)}`,
     headline,

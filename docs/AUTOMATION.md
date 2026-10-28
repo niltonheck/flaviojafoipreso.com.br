@@ -52,7 +52,8 @@ While a status is `manual`, the job still publishes news but never changes the s
    then `npx wrangler secret put ALERT_TO --env staging` (that address). `ALERT_FROM` is `alertas@<your domain>`.
    The destination stays a secret so no personal address lands in the public repo.
 3. Apply the migration: `npm run db:migrate:staging`, then set `AUTOMATION_ENABLED` to `"true"` for staging in
-   `wrangler.jsonc` and `npm run deploy:staging`.
+   `wrangler.jsonc` and deploy with the footer wording switched on: `PUBLIC_AUTOMATION=on npm run deploy:staging`.
+   (`PUBLIC_AUTOMATION=on` only changes the footer text; the build check fails if that text appears without it.)
 4. Watch the first runs: `npx wrangler tail --env staging` (logs print counts and reason codes only), and
    `npm run site:show -- --env staging`.
 5. Production only after staging behaves for a few days: repeat with `--env production`.

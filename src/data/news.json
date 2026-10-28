@@ -64,5 +64,60 @@
     },
     "reviewedAt": "2026-10-27T12:52:48-03:00",
     "reviewedBy": "niltonheck"
+  },
+  {
+    "id": "2026-10-27-agencias-de-noticia-afirmam-que-flavio-b",
+    "headline": "Agências de notícia afirmam que Flávio Bolsonaro viaja para os Estados Unidos um dia após dizer que não deixaria o Brasil",
+    "publishedAt": "2026-10-27T21:11:32.173-03:00",
+    "source": {
+      "publisher": "G1",
+      "url": "https://g1.globo.com/jornal-nacional/noticia/2026/10/27/agencias-de-noticia-afirmam-que-flavio-bolsonaro-viaja-para-os-eua-um-dia-apos-dizer-que-nao-deixaria-o-brasil.ghtml"
+    },
+    "reviewedAt": "2026-10-27T23:09:36-03:00",
+    "reviewedBy": "niltonheck"
+  },
+  {
+    "id": "2026-10-27-flavio-bolsonaro-chega-aos-eua-diz-bbc",
+    "headline": "Flávio Bolsonaro chega aos EUA, diz BBC",
+    "publishedAt": "2026-10-27T22:16:02.738-03:00",
+    "source": {
+      "publisher": "G1",
+      "url": "https://g1.globo.com/mundo/noticia/2026/10/27/flavio-bolsonaro-chega-aos-eua-diz-bbc.ghtml"
+    },
+    "reviewedAt": "2026-10-27T23:09:37-03:00",
+    "reviewedBy": "niltonheck"
+  },
+  {
+    "id": "2026-10-27-leia-a-cronologia-dos-fatos-que-levaram-",
+    "headline": "Leia a cronologia dos fatos que levaram Flávio a deixar o Brasil",
+    "publishedAt": "2026-10-27T23:23:02+00:00",
+    "source": {
+      "publisher": "Poder360",
+      "url": "https://www.poder360.com.br/poder-justica/leia-a-cronologia-dos-fatos-que-levaram-flavio-bolsonaro-deixar-o-brasil/"
+    },
+    "reviewedAt": "2026-10-27T23:09:37-03:00",
+    "reviewedBy": "niltonheck"
+  },
+  {
+    "id": "2026-10-27-nao-e-fuga-mas-exilio-dizem-bolsonarista",
+    "headline": "\"Não é fuga, mas exílio\", dizem bolsonaristas sobre Flávio sair do país",
+    "publishedAt": "2026-10-27T23:34:20+00:00",
+    "source": {
+      "publisher": "Poder360",
+      "url": "https://www.poder360.com.br/poder-justica/nao-e-fuga-mas-exilio-dizem-bolsonaristas-sobre-flavio-sair-do-pais/"
+    },
+    "reviewedAt": "2026-10-27T23:09:37-03:00",
+    "reviewedBy": "niltonheck"
+  },
+  {
+    "id": "2026-10-27-coordenador-de-campanha-se-diz-surpreso-",
+    "headline": "Coordenador de campanha se diz surpreso com fuga de Flávio",
+    "publishedAt": "2026-10-27T23:55:00.000Z",
+    "source": {
+      "publisher": "Agência Brasil",
+      "url": "https://agenciabrasil.ebc.com.br/politica/noticia/2026-10/coordenador-de-campanha-se-diz-surpreso-com-fuga-de-flavio"
+    },
+    "reviewedAt": "2026-10-27T23:10:26-03:00",
+    "reviewedBy": "niltonheck"
   }
 ]

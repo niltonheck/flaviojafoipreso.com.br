@@ -50,6 +50,9 @@ if (mode === 'production') more.push(['canonical presente só em produção', pa
 if (mode !== 'production') more.push(['sem canonical fora de produção', !pageHtml.includes('rel="canonical"')]);
 if (mode === 'production') more.push(['sem campos [PREENCHER] no site', !everythingHtml().includes('[PREENCHER')]);
 
+// The footer must not claim an automatic routine unless this build was made with PUBLIC_AUTOMATION=on.
+more.push(['rodapé não promete automação desligada', process.env.PUBLIC_AUTOMATION === 'on' || !pageHtml.includes('rotina automática')]);
+
 // No secret-looking PUBLIC_ variables, and no secret value or name anywhere in the output.
 const SECRETISH = /SECRET|TOKEN|PASSWORD|PRIVATE|API_?KEY/i;
 const leakyVars = Object.keys(process.env).filter((k) => k.startsWith('PUBLIC_') && SECRETISH.test(k));

@@ -15,6 +15,11 @@ describe('resolveConfig', () => {
     expect(() => resolveConfig({ PUBLIC_POLL_MODE: 'x' })).toThrow();
     expect(() => resolveConfig({ PUBLIC_STATUS_MAX_AGE_HOURS: '0' })).toThrow();
   });
+  it('footer automation wording is off unless PUBLIC_AUTOMATION is exactly "on"', () => {
+    expect(resolveConfig({}).automation).toBe(false);
+    expect(resolveConfig({ PUBLIC_AUTOMATION: 'true' }).automation).toBe(false);
+    expect(resolveConfig({ PUBLIC_AUTOMATION: 'on' }).automation).toBe(true);
+  });
   it('reads the freshness threshold', () => expect(resolveConfig({ PUBLIC_STATUS_MAX_AGE_HOURS: '24' }).statusMaxAgeHours).toBe(24));
 });
 

@@ -27,6 +27,22 @@ export function normalizeTimestamp(raw: string | null): string | null {
   return m ? `${m[1]}T${m[2]}-03:00` : raw.trim();
 }
 
+/**
+ * Chooses the publication time. An article's own page tag can be wrong (Agência Brasil labels UTC as -03:00), while the
+ * RSS feed's pubDate carries an explicit, correct offset, so the feed wins when the article appears in one.
+ * A time in the future is never plausible and is rejected.
+ */
+export function reconcileTimestamp(o: { page: string | null; feed: string | null; now: Date }): { value: string | null; note?: string; error?: string } {
+  const value = o.feed ?? o.page;
+  if (!value) return { value: null };
+  const t = Date.parse(value);
+  if (!Number.isNaN(t) && t > o.now.getTime() + 5 * 60_000) {
+    return { value: null, error: `data de publicação no futuro (${value}); a página provavelmente declara o fuso errado. Use --date.` };
+  }
+  const differs = o.feed && o.page && Math.abs(Date.parse(o.feed) - Date.parse(o.page)) > 5 * 60_000;
+  return differs ? { value, note: `a página diz ${o.page}, mas o feed diz ${o.feed}; usando o feed.` } : { value };
+}
+
 /** Calendar day (YYYY-MM-DD) in Brasília time. Date-only inputs are returned as-is. */
 export function brasiliaDay(iso: string): string {
   if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;

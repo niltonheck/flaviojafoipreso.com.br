@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { selectNews } from '../src/lib/news.ts';
-import { brasiliaDay, cleanTitle, normalizeTimestamp, parseMeta } from '../src/lib/meta.ts';
+import { brasiliaDay, cleanTitle, normalizeTimestamp, parseMeta, reconcileTimestamp } from '../src/lib/meta.ts';
 import type { NewsItem } from '../src/lib/types.ts';
 
 const item = (id: string, publishedAt: string): NewsItem => ({
@@ -69,4 +69,26 @@ describe('normalizeTimestamp', () => {
   });
   it('parseMeta applies it', () =>
     expect(parseMeta('<meta property="article:published_time" content="2026-10-27 11:19:00">').publishedAt).toBe('2026-10-27T11:19:00-03:00'));
+});
+
+describe('reconcileTimestamp', () => {
+  const now = new Date('2026-10-27T23:10:00-03:00');
+  it('prefers the feed over a page tag with the wrong zone (Agência Brasil case)', () => {
+    const r = reconcileTimestamp({ page: '2026-10-27T23:55:00-03:00', feed: '2026-10-27T23:55:00.000Z', now });
+    expect(r.value).toBe('2026-10-27T23:55:00.000Z');
+    expect(r.error).toBeUndefined();
+  });
+  it('flags a real feed/page disagreement, and uses the page when no feed has the article', () => {
+    const disagree = reconcileTimestamp({ page: '2026-10-27T10:00:00-03:00', feed: '2026-10-27T16:00:00.000Z', now });
+    expect(disagree.value).toBe('2026-10-27T16:00:00.000Z');
+    expect(disagree.note).toMatch(/usando o feed/);
+    expect(reconcileTimestamp({ page: '2026-10-27T10:00:00-03:00', feed: null, now }).value).toBe('2026-10-27T10:00:00-03:00');
+  });
+  it('does not complain when they agree', () => expect(reconcileTimestamp({ page: '2026-10-27T10:00:00-03:00', feed: '2026-10-27T13:00:00.000Z', now: new Date('2026-10-28T00:00:00Z') }).note).toBeUndefined());
+  it('rejects a time in the future, wherever it came from', () => {
+    expect(reconcileTimestamp({ page: '2026-10-27T23:55:00-03:00', feed: null, now }).error).toMatch(/futuro/);
+    expect(reconcileTimestamp({ page: null, feed: '2026-10-28T09:00:00Z', now }).error).toMatch(/futuro/);
+  });
+  it('allows a few minutes of clock skew', () => expect(reconcileTimestamp({ page: '2026-10-27T23:13:00-03:00', feed: null, now }).error).toBeUndefined());
+  it('handles nothing at all', () => expect(reconcileTimestamp({ page: null, feed: null, now }).value).toBeNull());
 });

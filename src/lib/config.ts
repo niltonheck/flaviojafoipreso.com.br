@@ -5,7 +5,7 @@ export const EDITOR = 'niltonheck';
 
 export const DEFAULT_STATUS_MAX_AGE_HOURS = 72;
 
-export type RuntimeEnv = { MODE?: string; PUBLIC_POLL_MODE?: string; PUBLIC_STATUS_MAX_AGE_HOURS?: string };
+export type RuntimeEnv = { MODE?: string; PUBLIC_POLL_MODE?: string; PUBLIC_STATUS_MAX_AGE_HOURS?: string; PUBLIC_AUTOMATION?: string };
 
 export function resolveConfig(env: RuntimeEnv) {
   const mode: SiteMode = env.MODE === 'production' || env.MODE === 'staging' ? env.MODE : 'demo';
@@ -17,5 +17,7 @@ export function resolveConfig(env: RuntimeEnv) {
   }
   const maxAge = Number(env.PUBLIC_STATUS_MAX_AGE_HOURS ?? DEFAULT_STATUS_MAX_AGE_HOURS);
   if (!Number.isFinite(maxAge) || maxAge <= 0) throw new Error('PUBLIC_STATUS_MAX_AGE_HOURS inválido.');
-  return { mode, pollMode, statusMaxAgeHours: maxAge };
+  // Build-time switch for the footer wording only; it must match the runtime AUTOMATION_ENABLED of that deploy.
+  const automation = env.PUBLIC_AUTOMATION === 'on';
+  return { mode, pollMode, statusMaxAgeHours: maxAge, automation };
 }

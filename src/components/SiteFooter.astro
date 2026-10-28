@@ -1,8 +1,8 @@
 ---
 import { AUTO_MAX_AGE_HOURS } from '../lib/status';
 
-interface Props { demo: boolean; maxAgeHours: number; pollMode: 'mock' | 'api' }
-const { demo, maxAgeHours, pollMode } = Astro.props;
+interface Props { demo: boolean; maxAgeHours: number; pollMode: 'mock' | 'api'; automation: boolean }
+const { demo, maxAgeHours, pollMode, automation } = Astro.props;
 const autoHours = AUTO_MAX_AGE_HOURS;
 ---
 <footer class="site-footer" id="sobre">
@@ -16,14 +16,23 @@ const autoHours = AUTO_MAX_AGE_HOURS;
   </div>
   <div class="site-footer__col">
     <p class="site-footer__lead"><strong>Metodologia</strong></p>
-    <p>
-      O “NÃO.” só aparece com status verificado e data de checagem; sem isso, mostramos “NÃO
-      VERIFICADO”. A checagem lê manchetes de veículos de imprensa credíveis e pode ser feita por uma pessoa
-      ou por uma rotina automática a cada hora (com apoio de IA). Qualquer sinal de prisão ou falha derruba a
-      resposta para “NÃO VERIFICADO”; “SIM” só entra com confirmação humana e fontes. Uma verificação manual
-      expira após {maxAgeHours} horas; a automática, após {autoHours} horas.
-      {demo && <> Nesta versão tudo é conteúdo de demonstração.</>}
-    </p>
+    {automation ? (
+      <p>
+        O “NÃO.” só aparece com status verificado e data de checagem; sem isso, mostramos “NÃO
+        VERIFICADO”. A checagem lê manchetes de veículos de imprensa credíveis e pode ser feita por uma pessoa
+        ou por uma rotina automática a cada hora (com apoio de IA). Qualquer sinal de prisão ou falha derruba a
+        resposta para “NÃO VERIFICADO”; “SIM” só entra com confirmação humana e fontes. Uma verificação manual
+        expira após {maxAgeHours} horas; a automática, após {autoHours} horas.
+        {demo && <> Nesta versão tudo é conteúdo de demonstração.</>}
+      </p>
+    ) : (
+      <p>
+        O “NÃO.” só aparece com status verificado e data de checagem; sem isso, mostramos “NÃO
+        VERIFICADO”. O status é conferido manualmente em fontes primárias e veículos de imprensa
+        credíveis, com links, e expira após {maxAgeHours} horas sem nova verificação.
+        {demo && <> Nesta versão tudo é conteúdo de demonstração.</>}
+      </p>
+    )}
   </div>
   <div class="site-footer__col">
     <p class="site-footer__lead"><strong>Presômetro</strong></p>
