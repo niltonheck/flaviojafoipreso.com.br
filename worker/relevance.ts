@@ -51,7 +51,7 @@ const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').t
 
 // Headlines about the departure itself: the flight, the route, the border, the passport order that preceded it.
 const DEPARTURE =
-  /\bfug(a|iu|ir|indo|itivo)\b|\bexili|rota de fuga|deix(a|ou|ar|ando|aram)\s+(o\s+)?(brasil|pais)|saida\s+(do|de)\s+(brasil|pais)|saiu\s+do\s+(brasil|pais)|cruz(a|ou|am|aram)\s+(a\s+)?fronteira|\bfronteira|\b(argentina|equador|paraguai|uruguai|bolivia)\b|paradeiro|passaporte|\b(voo|jatinho|aviao|aeronave|aeroporto)\b|\basilo\b/;
+  /\bfug(a|iu|ir|indo|itivo)\b|\bexili|rota de fuga|deix\w+\s+(o\s+)?(brasil|pais)|sa(ida|iu|ir|indo|ia|isse)\s+(do|de)\s+(brasil|pais)|cruz(a|ou|am|aram)\s+(a\s+)?fronteira|\bfronteira|\b(argentina|equador|paraguai|uruguai|bolivia)\b|paradeiro|passaporte|\b(voo|jatinho|aviao|aeronave|aeroporto)\b|\basilo\b/;
 // The US angle: where he is going or is, and the people who speak for or about him there.
 const US =
   /\b(eua|estados unidos|washington|miami|florida|casa branca|trump|bannon|visto|vistos|departamento de estado|rubio)\b/;

@@ -109,6 +109,8 @@ describe('isOnTopic (the story the site follows: his departure, the US, his own 
     'Flávio Bolsonaro não entrega passaporte à PF e descumpre ordem de Moraes',
     'Oposição na Argentina pede informações sobre entrada de Flávio no país',
     'Trump diz que aprovaria visto de Flávio, mas que não sabe o paradeiro do senador',
+    'Há quatro dias, Eduardo Bolsonaro defendeu que Flávio deixasse o Brasil caso perdesse a eleição',
+    'Flávio Bolsonaro planeja sair do país, dizem aliados',
   ])('publishes: %s', (title) => expect(isOnTopic({ title, publishedAt: after })).toBe(true));
 
   it.each([
@@ -119,6 +121,8 @@ describe('isOnTopic (the story the site follows: his departure, the US, his own 
     'Neymar reage a post de Richarlison que ironizou fuga de Flávio Bolsonaro',
     'Podcast discute reações e impactos iniciais da fuga de Flávio Bolsonaro',
     'O Assunto #1834: a rota de fuga de Flávio Bolsonaro',
+    'Vice de Flávio Bolsonaro, Alfredo Gaspar reconhece resultado da eleição presidencial',
+    'Veja quais são as investigações contra Flávio Bolsonaro',
   ])('does not publish: %s', (title) => expect(isOnTopic({ title, publishedAt: after })).toBe(false));
 
   it('counts his OWN statements, but only from the date the story began', () => {
