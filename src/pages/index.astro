@@ -12,7 +12,7 @@ const demo = c.mode === 'demo';
   title="Flávio Já Foi Preso? — Sátira política"
   description="Flávio Bolsonaro já foi preso? Site de sátira política com uma resposta simples e um Presômetro informal. Não é fonte oficial."
 >
-  <StatusHero record={c.record} resolved={c.resolved} checkedAtLabel={c.checkedAtLabel} maxAgeHours={c.statusMaxAgeHours} demo={demo} />
+  <StatusHero record={c.record} checkedAtLabel={c.checkedAtLabel} demo={demo} />
   <div class="lower">
     <Presometro poll={c.poll} pollMode={c.pollMode} demoCounts={c.demoCounts} />
     <NewsList items={c.news} demo={demo} />

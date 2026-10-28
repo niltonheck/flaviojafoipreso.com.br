@@ -1,38 +1,14 @@
-import type { ArrestStatus, StatusRecord } from './types.ts';
+import type { ArrestStatus } from './types.ts';
+
+export const ANSWER_TEXT: Record<ArrestStatus, string> = { yes: 'SIM.', no: 'NÃO.' };
 
 /**
- * An automated status is re-checked every 8 hours (3x/day), so it stays valid for 18 h: one missed run plus a margin.
- * Two missed runs expire it. tests/wrangler.test.ts ties this number to the cron gaps. If the job
- * dies, the page degrades to "NÃO VERIFICADO" quickly instead of leaving a stale answer up for the 72 h human window.
+ * The only rule for what the page claims: "NÃO." always, unless a human has recorded "yes" AND attached at least one
+ * source. A "yes" without a source is ignored (shown as "NÃO."). Anything else, including legacy values, is "NÃO.".
  */
-export const AUTO_MAX_AGE_HOURS = 18;
-
-export const ANSWER_TEXT: Record<ArrestStatus, string> = { yes: 'SIM.', no: 'NÃO.', unverified: 'NÃO VERIFICADO' };
-
-export type StatusReason = 'ok' | 'never-checked' | 'stale' | 'unverified';
-export type ResolvedStatus = { status: ArrestStatus; reason: StatusReason };
-
-/**
- * Decide what the page may claim. `yes`/`no` need a timestamp younger than the threshold;
- * otherwise we fall back to "unverified". Pure so the build and the browser share it.
- */
-export function resolveStatus(
-  status: ArrestStatus,
-  checkedAt: string | null,
-  now: Date,
-  maxAgeHours: number,
-): ResolvedStatus {
-  if (status === 'unverified') return { status: 'unverified', reason: 'unverified' };
-  if (!checkedAt) return { status: 'unverified', reason: 'never-checked' };
-  const t = Date.parse(checkedAt);
-  if (Number.isNaN(t)) return { status: 'unverified', reason: 'never-checked' };
-  const ageMs = now.getTime() - t;
-  if (ageMs > maxAgeHours * 3_600_000) return { status: 'unverified', reason: 'stale' };
-  return { status, reason: 'ok' };
+export function answerOf(status: string, evidenceCount: number): ArrestStatus {
+  return status === 'yes' && evidenceCount > 0 ? 'yes' : 'no';
 }
-
-export const resolveRecord = (r: StatusRecord, now: Date, maxAgeHours: number) =>
-  resolveStatus(r.status, r.checkedAt, now, maxAgeHours);
 
 /** `DD/MM/AAAA às HH:mm` in America/Sao_Paulo. */
 export function formatBrasilia(iso: string): string {

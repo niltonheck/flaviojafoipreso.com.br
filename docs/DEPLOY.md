@@ -7,7 +7,7 @@ repo does not hardcode any quota (SPEC C §7). Nothing is deployed until you run
 
 | | Local | Staging | Production |
 |---|---|---|---|
-| Content | demo fixtures | real files (starts "NÃO VERIFICADO", no news) | real files |
+| Content | demo fixtures | real files (answer NÃO) | real files |
 | Poll | mock **or** local D1 | Worker + its own D1, fake poll id `staging-…` | Worker + its own D1 |
 | URL | localhost | `*.workers.dev`, noindex, banner "Ambiente de teste" | custom domain (PR 4) |
 | Build | `npm run dev` | `npm run build:staging` | `npm run build` |

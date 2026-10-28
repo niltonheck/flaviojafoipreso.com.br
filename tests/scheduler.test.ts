@@ -32,30 +32,39 @@ describe('editorial cron end to end (fake feeds + fake Gemini)', () => {
     expect(raw.prepare('SELECT COUNT(*) AS n FROM news_items').get()).toEqual({ n: 1 });
   });
 
-  it('without a Gemini key it fails closed and emails', async () => {
+  it('without a Gemini key the answer stays NÃO and you get one email (no repeat on the next run)', async () => {
     const { env, raw } = makeEnv({ AUTOMATION_ENABLED: 'true' });
     const sendMail = vi.fn(async () => {});
-    await handleScheduled(CRON_EDITORIAL, env, { now: () => NOW, fetchFn: fakeFetch(routes()), sendMail });
-    expect(state(raw)).toEqual({ status: 'unverified', mode: 'auto' });
-    // first-ever run starting from "no" (none stored) -> unverified is a change worth an email
+    const d = { now: () => NOW, fetchFn: fakeFetch(routes()), sendMail };
+    await handleScheduled(CRON_EDITORIAL, env, d);
+    expect(state(raw)).toEqual({ status: 'no', mode: 'auto' });
+    expect(sendMail).toHaveBeenCalledOnce();
+    await handleScheduled(CRON_EDITORIAL, env, d); // same condition again: silent
     expect(sendMail).toHaveBeenCalledOnce();
   });
 
-  it('a crash in the job itself drops to unverified instead of leaving a stale "NÃO."', async () => {
+  it('a crash in the job itself never changes the answer; it emails once', async () => {
     const { env, raw } = makeEnv({ AUTOMATION_ENABLED: 'true', GEMINI_API_KEY: 'k' });
-    raw.prepare("INSERT INTO status_state (id,status,checked_at,verified_by,mode,reason,evidence,updated_at) VALUES (1,'no','2026-10-28T10:00:00.000Z','auto-gemini','auto',NULL,'[]','x')").run();
+    raw.prepare("INSERT INTO status_state (id,status,checked_at,verified_by,mode,reason,evidence,updated_at) VALUES (1,'no','2026-10-28T10:00:00.000Z','auto-gemini','auto','ok','[]','x')").run();
     const real = env.DB.prepare.bind(env.DB);
     env.DB.prepare = (sql: string) => { if (sql.includes('INSERT INTO editorial_runs')) throw new Error('db hiccup'); return real(sql); };
     const err = vi.spyOn(console, 'error').mockImplementation(() => {});
-    await handleScheduled(CRON_EDITORIAL, env, { now: () => NOW, fetchFn: fakeFetch(routes(NORMAL, geminiOk({ arrest_reported: 'no', evidence: [] }))) });
-    expect(state(raw)).toEqual({ status: 'unverified', mode: 'auto' });
+    const sendMail = vi.fn(async () => {});
+    const d = { now: () => NOW, fetchFn: fakeFetch(routes(NORMAL, geminiOk({ arrest_reported: 'no', evidence: [] }))), sendMail };
+    await handleScheduled(CRON_EDITORIAL, env, d);
+    expect(state(raw)).toEqual({ status: 'no', mode: 'auto' });
+    // the injected crash is at the run-log step, after the clean check already renewed the time; the answer is untouched
+    expect(raw.prepare('SELECT reason, checked_at FROM status_state').get()).toEqual({ reason: 'job-crashed', checked_at: NOW.toISOString() });
+    expect(sendMail).toHaveBeenCalledOnce();
+    await handleScheduled(CRON_EDITORIAL, env, d); // still crashing: no second email
+    expect(sendMail).toHaveBeenCalledOnce();
     expect(JSON.stringify(err.mock.calls)).not.toContain('db hiccup'); // sanitized: error class only
     err.mockRestore();
   });
 
-  it('a crash never overrides a human-held status', async () => {
+  it('a crash never overrides a human-recorded SIM', async () => {
     const { env, raw } = makeEnv({ AUTOMATION_ENABLED: 'true' });
-    raw.prepare("INSERT INTO status_state (id,status,checked_at,verified_by,mode,reason,evidence,updated_at) VALUES (1,'yes','2026-10-28T10:00:00.000Z','editor','manual',NULL,'[]','x')").run();
+    raw.prepare("INSERT INTO status_state (id,status,checked_at,verified_by,mode,reason,evidence,updated_at) VALUES (1,'yes','2026-10-28T10:00:00.000Z','editor','manual',NULL,'[{\"publisher\":\"G1\",\"url\":\"https://g1.globo.com/x\"}]','x')").run();
     const real = env.DB.prepare.bind(env.DB);
     env.DB.prepare = (sql: string) => { if (sql.includes('INSERT INTO editorial_runs')) throw new Error('x'); return real(sql); };
     vi.spyOn(console, 'error').mockImplementation(() => {});

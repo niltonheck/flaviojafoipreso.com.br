@@ -1,17 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { formatBrasilia, resolveStatus } from '../src/lib/status.ts';
+import { ANSWER_TEXT, answerOf, formatBrasilia } from '../src/lib/status.ts';
 
-const now = new Date('2026-10-27T12:00:00-03:00');
-const hoursAgo = (h: number) => new Date(now.getTime() - h * 3_600_000).toISOString();
-
-describe('resolveStatus', () => {
-  it('keeps a fresh "no"', () => expect(resolveStatus('no', hoursAgo(2), now, 72)).toEqual({ status: 'no', reason: 'ok' }));
-  it('keeps a fresh "yes"', () => expect(resolveStatus('yes', hoursAgo(71), now, 72).status).toBe('yes'));
-  it('falls back when stale', () => expect(resolveStatus('no', hoursAgo(73), now, 72)).toEqual({ status: 'unverified', reason: 'stale' }));
-  it('falls back without a timestamp', () => expect(resolveStatus('no', null, now, 72).reason).toBe('never-checked'));
-  it('falls back on an unparsable timestamp', () => expect(resolveStatus('no', 'junk', now, 72).status).toBe('unverified'));
-  it('unverified stays unverified', () => expect(resolveStatus('unverified', hoursAgo(1), now, 72).status).toBe('unverified'));
-  it('honours the configured threshold', () => expect(resolveStatus('no', hoursAgo(25), now, 24).status).toBe('unverified'));
+describe('answerOf: "NÃO." unless a human recorded "SIM" with a source', () => {
+  it('is SIM only for "yes" with at least one source', () => {
+    expect(answerOf('yes', 1)).toBe('yes');
+    expect(answerOf('yes', 3)).toBe('yes');
+  });
+  it('is NÃO for "yes" without a source (never displayed)', () => expect(answerOf('yes', 0)).toBe('no'));
+  it('is NÃO for "no"', () => expect(answerOf('no', 0)).toBe('no'));
+  it.each(['unverified', '', 'maybe', 'YES', 'true'])('is NÃO for anything else, e.g. %j (legacy or garbage)', (s) => expect(answerOf(s, 5)).toBe('no'));
+  it('has exactly two answers', () => expect(Object.keys(ANSWER_TEXT).sort()).toEqual(['no', 'yes']));
+  it('never produces a "NÃO VERIFICADO" text', () => expect(JSON.stringify(ANSWER_TEXT)).not.toMatch(/VERIFICADO/));
 });
 
 describe('formatBrasilia', () => {

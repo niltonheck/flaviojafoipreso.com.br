@@ -1,5 +1,5 @@
 import { resolveConfig } from './config.ts';
-import { resolveRecord, formatBrasilia, type ResolvedStatus } from './status.ts';
+import { formatBrasilia } from './status.ts';
 import { selectNews } from './news.ts';
 import type { DemoCounts, NewsItem, PollConfig, StatusRecord } from './types.ts';
 import status from '../data/status.json';
@@ -22,17 +22,15 @@ export async function loadContent(now = new Date()) {
       import('../data/fixtures/demo/news.json'),
       import('../data/fixtures/demo/poll-counts.json'),
     ]);
-    // Keep the demo status "fresh" no matter when the build/dev server runs.
+    // Keep the demo's "last check" recent no matter when the build/dev server runs.
     record = { ...(s.default as StatusRecord), checkedAt: new Date(now.getTime() - 2 * 3_600_000).toISOString() };
     items = n.default as NewsItem[];
     demoCounts = c.default as DemoCounts;
   }
 
-  const resolved: ResolvedStatus = resolveRecord(record, now, cfg.statusMaxAgeHours);
   return {
     ...cfg,
     record,
-    resolved,
     checkedAtLabel: record.checkedAt ? formatBrasilia(record.checkedAt) : null,
     news: selectNews(items),
     poll: poll as PollConfig,

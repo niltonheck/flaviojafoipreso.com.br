@@ -1,30 +1,16 @@
 ---
 import type { StatusRecord } from '../lib/types';
-import { ANSWER_TEXT, type ResolvedStatus } from '../lib/status';
+import { ANSWER_TEXT, answerOf } from '../lib/status';
 
 interface Props {
   record: StatusRecord;
-  resolved: ResolvedStatus;
   checkedAtLabel: string | null;
-  maxAgeHours: number;
   demo: boolean;
 }
-const { record, resolved, checkedAtLabel, maxAgeHours, demo } = Astro.props;
-const status = resolved.status;
-const NOTE: Record<string, string> = {
-  unverified: 'Ainda sem verificação confiável.',
-  'never-checked': 'Ainda sem verificação confiável.',
-  stale: 'A última verificação expirou, então a resposta está suspensa.',
-};
+const { record, checkedAtLabel, demo } = Astro.props;
+const answer = answerOf(record.status, record.evidence.length); // "no" unless a human recorded "yes" with a source
 ---
-<section
-  class="hero"
-  aria-labelledby="pergunta"
-  data-status={status}
-  data-declared-status={record.status}
-  data-checked-at={record.checkedAt ?? ''}
-  data-max-age-hours={maxAgeHours}
->
+<section class="hero" aria-labelledby="pergunta" data-status={answer}>
   <div class="hero__portrait" aria-hidden="true">
     <img
       src="/images/portrait-480.webp"
@@ -38,9 +24,9 @@ const NOTE: Record<string, string> = {
     />
   </div>
   <h1 id="pergunta" class="hero__question">Flávio Bolsonaro já foi preso?</h1>
-  <p class="hero__answer" role="status" data-answer>{ANSWER_TEXT[status]}</p>
+  <p class="hero__answer" role="status" data-answer>{ANSWER_TEXT[answer]}</p>
   <p class="hero__meta">
-    <span data-note>{status === 'unverified' ? NOTE[resolved.reason] : 'Até onde foi possível verificar.'}</span>
+    <span data-note>Até onde foi possível verificar.</span>
     <span class="sep" data-verif-sep aria-hidden="true" hidden={!checkedAtLabel}>·</span>
     <span data-verif hidden={!checkedAtLabel}><span data-verif-label>Última verificação:</span>{' '}<time data-verif-time datetime={record.checkedAt ?? ''}>{checkedAtLabel ? `${checkedAtLabel} (Brasília)` : ''}</time></span>
     <span class="sep" aria-hidden="true">·</span>
@@ -52,21 +38,13 @@ const NOTE: Record<string, string> = {
     ))}</span>
   </p>
   {demo && <p class="hero__demo">Exibição de demonstração — conteúdo local, sem verificação editorial.</p>}
-  {status !== 'unverified' && (
-    <noscript>
-      <p class="hero__demo">
-        Status válido em {checkedAtLabel} (Brasília). Ative o JavaScript para confirmar que ele ainda está atualizado.
-      </p>
-    </noscript>
-  )}
 </section>
 
 <script>
-  // Freshness guard (SPEC C §3): the static HTML cannot age itself, so re-check in the browser.
-  // It also applies the automated status served by the Worker (docs/AUTOMATION.md) when available.
-  import { ANSWER_TEXT, AUTO_MAX_AGE_HOURS, formatBrasilia, resolveStatus } from '../lib/status';
+  // Applies the live status served by the Worker (docs/AUTOMATION.md). The answer is "NÃO." unless a human recorded a "SIM"
+  // with a source; there is no stale/unverified state to compute any more.
+  import { ANSWER_TEXT, answerOf, formatBrasilia } from '../lib/status';
   import { SITE_EVENT, type SiteData, type SiteEvidence } from '../lib/site';
-  import type { ArrestStatus } from '../lib/types';
 
   // A missing portrait must not break the layout (no inline handlers: the CSP forbids them).
   const img = document.querySelector<HTMLImageElement>('img[data-portrait]');
@@ -76,22 +54,9 @@ const NOTE: Record<string, string> = {
     else img.addEventListener('error', hidePortrait, { once: true });
   }
 
-  const hero = document.querySelector<HTMLElement>('.hero[data-declared-status]');
+  const hero = document.querySelector<HTMLElement>('.hero[data-status]');
   if (hero) {
-    const maxAge = Number(hero.dataset.maxAgeHours);
     const $ = <T extends HTMLElement>(s: string) => hero.querySelector<T>(s)!;
-
-    const apply = (declared: ArrestStatus, checkedAt: string | null, limitHours = maxAge) => {
-      const r = resolveStatus(declared, checkedAt, new Date(), limitHours);
-      hero.dataset.declaredStatus = declared;
-      hero.dataset.checkedAt = checkedAt ?? '';
-      hero.dataset.status = r.status;
-      $('[data-answer]').textContent = ANSWER_TEXT[r.status];
-      $('[data-note]').textContent =
-        r.status !== 'unverified' ? 'Até onde foi possível verificar.'
-        : r.reason === 'stale' ? 'A última verificação expirou, então a resposta está suspensa.'
-        : 'Ainda sem verificação confiável.';
-    };
 
     const showVerification = (checkedAt: string | null, auto: boolean) => {
       const on = checkedAt !== null;
@@ -116,12 +81,10 @@ const NOTE: Record<string, string> = {
       $('[data-sources]').hidden = evidence.length === 0;
     };
 
-    // 1) the build-time snapshot, aged against the clock
-    apply(hero.dataset.declaredStatus as ArrestStatus, hero.dataset.checkedAt || null);
-
-    // 2) the live automated state, if the Worker served one
     const onSite = (s: SiteData) => {
-      apply(s.status.status, s.status.checkedAt, s.status.mode === 'auto' ? AUTO_MAX_AGE_HOURS : maxAge);
+      const answer = answerOf(s.status.status, s.status.evidence.length);
+      hero.dataset.status = answer;
+      $('[data-answer]').textContent = ANSWER_TEXT[answer];
       showVerification(s.status.checkedAt, s.status.mode === 'auto');
       showSources(s.status.evidence);
     };

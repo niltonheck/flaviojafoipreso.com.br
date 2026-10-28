@@ -61,14 +61,6 @@ a { color: inherit; }
   padding: .2em 0 .02em;
   white-space: nowrap;
 }
-.hero[data-status="unverified"] .hero__answer {
-  color: var(--muted);
-  font-size: clamp(2.6rem, 14cqi, 10rem);
-  letter-spacing: -.03em;
-  white-space: normal;
-  line-height: .95;
-  padding: .3em 0;
-}
 .hero[data-status="yes"] .hero__answer { color: var(--green); }
 .hero__meta { margin: 10px 0 0; font-size: clamp(.95rem, 2.2cqi, 1.15rem); color: var(--text); }
 .hero__meta a { color: var(--muted); text-underline-offset: 3px; }

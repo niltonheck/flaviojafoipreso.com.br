@@ -1,7 +1,7 @@
 import type { D1Like } from './types.ts';
 
 export type StatusRow = {
-  status: 'yes' | 'no' | 'unverified';
+  status: 'yes' | 'no' | 'unverified'; // "unverified" only exists in old rows and is read as "no"
   checked_at: string | null;
   verified_by: string;
   mode: 'auto' | 'manual';

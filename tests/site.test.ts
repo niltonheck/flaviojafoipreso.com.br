@@ -8,8 +8,11 @@ const good = () => ({
 
 describe('parseSite (untrusted JSON before it reaches the DOM)', () => {
   it('accepts a well-formed payload', () => expect(parseSite(good())).toEqual(good()));
-  it('accepts unverified with a null timestamp and no news', () =>
-    expect(parseSite({ status: { ...good().status, status: 'unverified', checkedAt: null }, news: [] })?.status.status).toBe('unverified'));
+  it('reads a legacy "unverified" value as "no" (there is no third state) and accepts a null timestamp', () => {
+    const r = parseSite({ status: { ...good().status, status: 'unverified', checkedAt: null }, news: [] });
+    expect(r?.status.status).toBe('no');
+    expect(r?.status.checkedAt).toBeNull();
+  });
 
   it.each([
     ['null', null],

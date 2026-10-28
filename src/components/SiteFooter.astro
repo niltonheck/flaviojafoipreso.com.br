@@ -1,9 +1,6 @@
 ---
-import { AUTO_MAX_AGE_HOURS } from '../lib/status';
-
-interface Props { demo: boolean; maxAgeHours: number; pollMode: 'mock' | 'api'; automation: boolean }
-const { demo, maxAgeHours, pollMode, automation } = Astro.props;
-const autoHours = AUTO_MAX_AGE_HOURS;
+interface Props { demo: boolean; pollMode: 'mock' | 'api'; automation: boolean }
+const { demo, pollMode, automation } = Astro.props;
 ---
 <footer class="site-footer" id="sobre">
   <div class="site-footer__col">
@@ -16,23 +13,14 @@ const autoHours = AUTO_MAX_AGE_HOURS;
   </div>
   <div class="site-footer__col">
     <p class="site-footer__lead"><strong>Metodologia</strong></p>
-    {automation ? (
-      <p>
-        O “NÃO.” só aparece com status verificado e data de checagem; sem isso, mostramos “NÃO
-        VERIFICADO”. A checagem lê manchetes de veículos de imprensa credíveis e pode ser feita por uma pessoa
-        ou por uma rotina automática três vezes ao dia (com apoio de IA). Qualquer sinal de prisão ou falha derruba a
-        resposta para “NÃO VERIFICADO”; “SIM” só entra com confirmação humana e fontes. Uma verificação manual
-        expira após {maxAgeHours} horas; a automática, após {autoHours} horas.
-        {demo && <> Nesta versão tudo é conteúdo de demonstração.</>}
-      </p>
-    ) : (
-      <p>
-        O “NÃO.” só aparece com status verificado e data de checagem; sem isso, mostramos “NÃO
-        VERIFICADO”. O status é conferido manualmente em fontes primárias e veículos de imprensa
-        credíveis, com links, e expira após {maxAgeHours} horas sem nova verificação.
-        {demo && <> Nesta versão tudo é conteúdo de demonstração.</>}
-      </p>
-    )}
+    <p>
+      A resposta é “NÃO.” até que exista uma confirmação concreta de prisão: “SIM” só entra com confirmação humana e
+      fontes de imprensa credíveis, com links.
+      {automation
+        ? <> Uma rotina automática lê manchetes de veículos credíveis três vezes ao dia (com apoio de IA) e avisa uma pessoa quando vê sinal de prisão.</>
+        : <> O status é conferido manualmente.</>}
+      {demo && <> Nesta versão tudo é conteúdo de demonstração.</>}
+    </p>
   </div>
   <div class="site-footer__col">
     <p class="site-footer__lead"><strong>Presômetro</strong></p>

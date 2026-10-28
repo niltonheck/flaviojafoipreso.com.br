@@ -22,7 +22,7 @@ const ARREST_PATTERNS: RegExp[] = [
 /**
  * Deterministic safety net that runs without any AI: positive arrest phrasing about Flávio in a headline.
  * It is intentionally conservative on negation ("não foi preso" never matches) but loud otherwise,
- * because a false alarm only drops the site to "NÃO VERIFICADO".
+ * because a false alarm only sends the editor an email (the page keeps saying "NÃO.").
  */
 export function arrestTripwire(i: Pick<FeedItem, 'title'>): boolean {
   return ARREST_PATTERNS.some((re) => {

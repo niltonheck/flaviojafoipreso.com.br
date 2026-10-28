@@ -3,7 +3,7 @@
 //   (keeps the page's full publication timestamp so same-day stories sort correctly; no publisher text is copied
 //   unless you pass --summary)
 //   npm run news:add -- <url> [--headline "…"] [--publisher "…"] [--date YYYY-MM-DD] [--summary "…"] [--dry-run]
-//   npm run status:set -- <yes|no|unverified> [--source <url>]… [--note "…"] [--dry-run]
+//   npm run status:set -- <yes|no> [--source <url>]… [--note "…"] [--dry-run]
 //   "no" needs no sources (just the check time); "yes" requires at least one trusted source.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
@@ -102,7 +102,7 @@ if (cmd === 'news') {
     source: { type: 'string', multiple: true }, note: { type: 'string' }, 'dry-run': { type: 'boolean' },
   } });
   const status = positionals[0] as StatusRecord['status'];
-  if (!['yes', 'no', 'unverified'].includes(status)) die('uso: npm run status:set -- <yes|no|unverified> [--source <url>]… [--note "…"]');
+  if (status !== 'yes' && status !== 'no') die('uso: npm run status:set -- <yes|no> [--source <url>]… [--note "…"]  (não existe mais "unverified": a resposta é NÃO até haver um SIM concreto)');
   const prev: StatusRecord = read('src/data/status.json');
   // Only reuse previous sources when the status is unchanged (never carry "yes" evidence over to "no").
   let evidence: Source[] = prev.status === status ? prev.evidence : [];
@@ -122,11 +122,11 @@ if (cmd === 'news') {
     console.warn(`⚠ reutilizando ${evidence.length} fonte(s) anteriores. Confirme que ainda sustentam "yes".`);
   }
   const next: StatusRecord = {
-    subject: 'flavio-bolsonaro', status, checkedAt: status === 'unverified' && !values.source ? null : nowBrasilia(),
-    verifiedBy: EDITOR, evidence: status === 'unverified' ? [] : evidence,
+    subject: 'flavio-bolsonaro', status, checkedAt: nowBrasilia(),
+    verifiedBy: EDITOR, evidence: status === 'yes' ? evidence : [],
     ...(values.note ? { editorialNote: values.note } : {}),
   };
   finish('Status', 'src/data/status.json', next, validateStatus(next, { strict: true, trustedDomains: trusted }), !!values['dry-run']);
 } else {
-  die('comandos: news add <url> | status <yes|no|unverified>');
+  die('comandos: news add <url> | status <yes|no>');
 }

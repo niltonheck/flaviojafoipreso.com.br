@@ -1,7 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { AUTO_MAX_AGE_HOURS } from '../src/lib/status.ts';
 
 const cfg = JSON.parse(readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8').split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n'));
 const guard = (env: string) => spawnSync('node', ['scripts/check-wrangler.ts', env], { encoding: 'utf8', cwd: new URL('..', import.meta.url).pathname });
@@ -29,15 +28,6 @@ describe('wrangler.jsonc', () => {
     for (const env of [cfg, cfg.env.staging, cfg.env.production]) expect(env.triggers.crons).toEqual(expect.arrayContaining(['0 5 * * *', '0 1,9,17 * * *']));
     expect(cfg.env.production.triggers.crons).toEqual(['0 5 * * *', '0 1,9,17 * * *']);
     expect(cfg.triggers.crons).toEqual(['0 5 * * *', '0 1,9,17 * * *']);
-  });
-
-  it('keeps the automated-status freshness window in step with the editorial cron gaps', () => {
-    const hours = cfg.env.production.triggers.crons.find((c: string) => /^0 [\d,]+ \* \* \*$/.test(c) && c !== '0 5 * * *').split(' ')[1].split(',').map(Number);
-    const gaps = hours.map((h: number, i: number) => ((hours[(i + 1) % hours.length] - h + 24) % 24) || 24);
-    const maxGap = Math.max(...gaps);
-    expect(maxGap).toBe(8);
-    expect(AUTO_MAX_AGE_HOURS).toBeGreaterThan(maxGap); // a normal gap must never expire a fresh status
-    expect(AUTO_MAX_AGE_HOURS).toBeLessThanOrEqual(2 * maxGap + 4); // ...but two missed runs must
   });
 
   it('enables automation only in production, and holds no secrets or personal addresses in the config', () => {

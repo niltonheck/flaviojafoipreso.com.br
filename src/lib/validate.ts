@@ -39,17 +39,17 @@ export function validateStatus(r: StatusRecord, o: Options): Issue[] {
   const now = o.now ?? new Date();
   const err = (path: string, message: string) => out.push({ level: 'error', path, message });
   if (r.subject !== 'flavio-bolsonaro') err('status.subject', 'subject deve ser "flavio-bolsonaro"');
-  if (!['yes', 'no', 'unverified'].includes(r.status)) err('status.status', 'status deve ser yes, no ou unverified');
+  if (!['yes', 'no'].includes(r.status)) err('status.status', 'status deve ser yes ou no');
   if (!r.verifiedBy) err('status.verifiedBy', 'verifiedBy é obrigatório');
   if (r.checkedAt !== null && !isValidDate(r.checkedAt, true)) err('status.checkedAt', 'data inválida (use ISO 8601 com fuso, ex.: 2026-10-27T09:00:00-03:00)');
   if (r.checkedAt && isValidDate(r.checkedAt, true) && Date.parse(r.checkedAt) > now.getTime() + 5 * 60_000) {
     err('status.checkedAt', 'checkedAt está no futuro');
   }
-  if (r.status !== 'unverified') {
-    if (!r.checkedAt) err('status.checkedAt', `status "${r.status}" exige checkedAt`);
-    // "no" only needs a fresh check; "yes" must be backed by cited, trusted sources.
-    if (o.strict && r.status === 'yes' && r.evidence.length === 0) err('status.evidence', 'status "yes" exige ao menos uma fonte');
-    if (o.strict && r.status === 'yes' && r.evidence.length === 1) {
+  // "no" is the default answer and needs nothing; "yes" is the only claim that must be backed by cited, trusted sources.
+  if (r.status === 'yes') {
+    if (!r.checkedAt) err('status.checkedAt', 'status "yes" exige checkedAt');
+    if (o.strict && r.evidence.length === 0) err('status.evidence', 'status "yes" exige ao menos uma fonte');
+    if (o.strict && r.evidence.length === 1) {
       out.push({ level: 'warning', path: 'status.evidence', message: 'status "yes": recomenda-se mais de uma fonte independente' });
     }
   }

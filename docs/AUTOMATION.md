@@ -1,79 +1,79 @@
 # Automated editorial job (3x/day)
 
-A Cloudflare Worker cron (`0 1,9,17 * * *` UTC = 22:00, 06:00 and 14:00 Brasília) reads the trusted outlets' RSS feeds, publishes verbatim headlines about
-Flávio Bolsonaro, and re-checks the status. It is **off by default**: nothing runs, and the page ignores any stored
-state, unless the Worker variable `AUTOMATION_ENABLED` is exactly `"true"` (the kill switch).
+**The answer on the page is "NÃO." unless a human has recorded "SIM" with at least one trusted source.** There is no
+"NÃO VERIFICADO" state, no expiry, and nothing the automation can do changes the answer. (This deliberately replaces
+Spec C §3's "unverified when stale" rule, by the owner's decision: the default is the joke, and the only claim that
+needs proof is "SIM".)
 
-This deliberately relaxes Spec C §3 ("never auto-promote status from AI output") in one direction only: the job may
-*keep* "NÃO." fresh, but it can **never** set "SIM" and every doubt drops the site to "NÃO VERIFICADO".
+A Cloudflare Worker cron (`0 1,9,17 * * *` UTC = 22:00, 06:00 and 14:00 Brasília) does two things. It is **off by
+default**: nothing runs, and the page ignores any stored state, unless the Worker variable `AUTOMATION_ENABLED` is
+exactly `"true"` (the kill switch).
 
-## What it does each hour
+1. **Publishes news**: headlines from the trusted outlets' RSS feeds that name Flávio Bolsonaro, verbatim.
+2. **Watches for an arrest and tells you**: it never sets the answer, it emails the editor.
+
+## What it does each run
 1. Fetch the feeds in `src/data/feeds.json` (G1, Folha, Poder360, Agência Brasil). Only links on
    `src/data/trusted-sources.json` are kept; redirect wrappers are unwrapped; tracking params are dropped.
 2. **News:** headlines whose title names Flávio Bolsonaro (not Flávio Dino, not a passing mention) are stored
-   **verbatim** with publisher, link and timestamp. No AI writes any text. The page shows the 3 newest.
-   Headlines that speculate about a *future* arrest ("prisão preventiva", "pode ser preso", "pedido de prisão"…) are
-   not published (the site never implies an arrest is imminent) but are still shown to the status check.
-3. **Status**, in this order. Any failure => `unverified`:
-   1. enough live feeds (≥3 feeds, ≥2 outlets, newest item < 48 h old) — else `feeds-unhealthy`
-   2. at least one headline about him in the last 48 h — else `no-recent-coverage`
+   **verbatim** with publisher, link and timestamp. No AI writes any text. The page shows the 3 newest. Headlines that
+   speculate about a *future* arrest ("prisão preventiva", "pode ser preso", "pedido de prisão"…) are not published
+   (the site never implies an arrest is imminent) but are still shown to the check below.
+3. **The check**, in this order:
+   1. enough live feeds (≥3 feeds, ≥2 outlets, newest item < 48 h old), else `cannot-verify: feeds-unhealthy`
+   2. at least one headline about him in the last 48 h, else `cannot-verify: no-recent-coverage`
    3. **keyword tripwire** (no AI): positive arrest phrasing in a headline ("Flávio é preso", "PF prende Flávio"…;
-      negation-aware) — `arrest-signal-keyword`
-   4. **Gemini** classifier (`worker/gemini.ts`): "does any item report an arrest?" Strict JSON, temperature 0.
-      `yes` / `uncertain` / malformed / unverifiable => unverified. A `yes` must quote text that really appears in the
-      cited item, or the whole answer is rejected.
-   5. only a clean `no` renews **NÃO.** with `checked_at = now`, labeled "Verificação automática" on the page.
-4. Email an alert **only when the status changes** (to or from "NÃO VERIFICADO") or the job crashes.
+      negation-aware), so `arrest-signal-keyword`
+   4. **Gemini** (`gemini-3.8-flash`): "does any item report an arrest?" Strict JSON, temperature 0. `yes` or `uncertain`
+      is an `arrest-signal`; a malformed or unverifiable answer is `cannot-verify`. A `yes` must quote text that really
+      appears in the cited item, or the whole answer is rejected.
+4. **Result.** A clean check renews the "last check" time (shown as "Verificação automática"). Anything else keeps the
+   previous time. **The answer is "NÃO." either way.**
+5. **Email**, only when the condition *changes* (no repeat spam):
+   - `arrest-signal`: "Possível sinal de prisão: confira", with the quotes and the exact command to record a SIM
+   - `cannot-verify` or a job crash: "A checagem automática não conseguiu verificar"
+   - back to normal: "Checagem automática normalizada"
 
-If the job itself crashes, it sets `unverified` (fail closed). A human-set status is never touched.
-
-## Freshness
-An automated status is valid for **18 hours** (`AUTO_MAX_AGE_HOURS`: one missed 8 h run plus a margin; a test ties it
-to the cron gaps). If the cron dies, the page
-degrades to "NÃO VERIFICADO" by itself. A manual status keeps the 72 h window.
-
-## Human control
+## Recording a SIM (human only)
 ```bash
-npm run site:show -- --env staging                         # current stored state + newest headlines
-npm run site:hold -- yes --env staging --source <url> …    # you own the status ("yes" needs trusted HTTPS sources)
-npm run site:hold -- no  --env staging                     # hold NÃO. yourself
-npm run site:auto -- --env staging                         # hand control back to the automated job
+npm run site:hold -- yes --env production --source <url> [--source <url>]   # needs >=1 trusted HTTPS source
+npm run site:auto -- --env production                                        # back to NÃO (the job resumes)
+npm run site:show -- --env production                                        # stored state + newest headlines
 ```
-While a status is `manual`, the job still publishes news but never changes the status.
+A `yes` without a source is ignored everywhere (server, page, validator). While a SIM is recorded the job still
+publishes news but never touches it. For the git snapshot (used until the first run, and by no-JS visitors):
+`npm run status:set -- yes --source <url>` / `npm run status:set -- no`.
 
 ## Data flow
-- Job writes D1: `status_state` (one row), `news_items` (newest 60), `editorial_runs` (counts/reason codes only).
+- The job writes D1: `status_state` (one row), `news_items` (newest 60), `editorial_runs` (counts/reason codes only).
 - The page's existing `GET /api/polls/current` call also returns `site` (only when enabled): one request per visit,
   no extra Worker invocation. The browser validates it (`src/lib/site.ts`: https links only, bounded, closed enums)
   before touching the DOM, and silently keeps the build-time snapshot if anything is off.
-- No-JS visitors see the build-time snapshot (git), as before.
 
-## Turning it on (staging first)
-1. **Gemini key** (you): create an API key, then `npx wrangler secret put GEMINI_API_KEY --env staging`.
-   The model is pinned to `gemini-3.8-flash` (`GEMINI_MODEL` in `wrangler.jsonc`). Models get retired: when one does,
-   the job fails closed ("NÃO VERIFICADO" + an alert) until you change that variable.
-2. **Email alerts** (you): Cloudflare → Email → Email Routing → enable, add your inbox as a destination and verify it,
-   then `npx wrangler secret put ALERT_TO --env staging` (that address). `ALERT_FROM` is `alertas@<your domain>`.
-   The destination stays a secret so no personal address lands in the public repo.
-3. Apply the migration: `npm run db:migrate:staging`, then set `AUTOMATION_ENABLED` to `"true"` for staging in
-   `wrangler.jsonc` and deploy with the footer wording switched on: `PUBLIC_AUTOMATION=on npm run deploy:staging`.
-   (`PUBLIC_AUTOMATION=on` only changes the footer text; the build check fails if that text appears without it.)
-4. Watch the first runs: `npx wrangler tail --env staging` (logs print counts and reason codes only), and
-   `npm run site:show -- --env staging`.
-5. Production only after staging behaves for a few days: repeat with `--env production`.
+## Turning it on
+1. **Gemini key**: `! npx wrangler secret put GEMINI_API_KEY --env production` (staging: `--env staging`).
+2. **Email alerts** (strongly recommended: they are now the *only* safety net, because the page can no longer degrade):
+   Cloudflare → Email → Email Routing → enable, add your inbox as a destination and verify it, then
+   `! npx wrangler secret put ALERT_TO --env production`. `ALERT_FROM` is `alertas@<your domain>`.
+3. `AUTOMATION_ENABLED` is `"true"` for production in `wrangler.jsonc`; deploy with the footer wording switched on:
+   `PUBLIC_AUTOMATION=on npm run deploy:production` (the build check fails if that wording appears without the flag).
+4. Watch the first runs: `npx wrangler tail --env production` (counts and reason codes only) and `npm run site:show`.
+   Cloudflare can take ~10 minutes to start firing a newly deployed schedule.
 
-## Unverified at the time of writing (check before relying on it)
-- Gemini pricing and free-tier limits. (The live call itself was tested 2026-10-27 with the real code and real headlines:
-  real coverage -> "no"; a synthetic arrest headline -> "yes" with a quote that verified; a prompt-injection attempt failed.
-  `gemini-2.5-flash` is already retired for new users, hence the pinned `gemini-3.8-flash`.)
-- Whether each publisher serves its RSS to Cloudflare's egress IPs (it worked from a home connection).
-- Workers **Free** CPU limit (10 ms per invocation) vs. parsing six feeds each hour; Workers Paid raises it.
+Models get retired (`gemini-2.5-flash` already is for new users). When the pinned one is, the job reports
+`classifier-error` and emails you until you change `GEMINI_MODEL` in `wrangler.jsonc`.
+
+## Unverified at the time of writing
+- Gemini pricing and free-tier limits. (The live call was tested 2026-10-27 with the real code and real headlines:
+  real coverage -> "no"; a synthetic arrest headline -> "yes" with a quote that verified; a prompt-injection attempt failed.)
 - Email Routing replaces the "null MX" records Cloudflare added for a send-nothing domain.
-- Worker request quota: each page view already makes one Worker call (the poll); this adds none.
+- Workers Free CPU limit (10 ms per invocation): the staging run completed, but watch for CPU errors in the tail.
 
 ## Risks that remain
-- The tripwire and Gemini can miss a real arrest reported only in prose or only outside the 6 feeds. Worst case the
-  site shows "NÃO." for up to ~8 hours after an arrest (up to 18 h if the job itself dies). The hourly version cut that to
-  ~1 h; running 3x/day trades that lag for fewer Gemini calls. Unlike before, nothing ever shows "SIM" by itself.
-- Feed text is untrusted: the prompt tells the model to ignore instructions inside it, and a "no" can only renew
-  "NÃO."; it cannot publish text or "SIM". The headlines come from allowlisted outlets only.
+- **The page can say "NÃO." after a real arrest until a human records the SIM.** The job shortens that by emailing you
+  at the next run (up to ~8 h), but if the alert email is not configured, or a headline is only in prose or outside the
+  4 outlets, nobody is told. Setting up the email is the most valuable safety step.
+- **A dead job is invisible on the page** (the "last check" time just gets old). The email for a crash or an unreadable
+  feed set is the signal.
+- Feed text is untrusted: the prompt tells the model to ignore instructions inside it, and the model cannot publish text
+  or change the answer. Headlines come from allowlisted outlets only.

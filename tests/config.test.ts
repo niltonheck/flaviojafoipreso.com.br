@@ -7,20 +7,19 @@ import trusted from '../src/data/trusted-sources.json';
 import type { NewsItem, StatusRecord } from '../src/lib/types.ts';
 
 describe('resolveConfig', () => {
-  it('defaults to demo + mock poll', () => expect(resolveConfig({})).toMatchObject({ mode: 'demo', pollMode: 'mock', statusMaxAgeHours: 72 }));
+  it('defaults to demo + mock poll', () => expect(resolveConfig({})).toMatchObject({ mode: 'demo', pollMode: 'mock', automation: false }));
   it('production defaults to the api poll', () => expect(resolveConfig({ MODE: 'production' }).pollMode).toBe('api'));
   it('refuses the mock poll in production', () => expect(() => resolveConfig({ MODE: 'production', PUBLIC_POLL_MODE: 'mock' })).toThrow());
   it('allows mock in staging', () => expect(resolveConfig({ MODE: 'staging', PUBLIC_POLL_MODE: 'mock' }).pollMode).toBe('mock'));
   it('rejects bad values', () => {
     expect(() => resolveConfig({ PUBLIC_POLL_MODE: 'x' })).toThrow();
-    expect(() => resolveConfig({ PUBLIC_STATUS_MAX_AGE_HOURS: '0' })).toThrow();
   });
   it('footer automation wording is off unless PUBLIC_AUTOMATION is exactly "on"', () => {
     expect(resolveConfig({}).automation).toBe(false);
     expect(resolveConfig({ PUBLIC_AUTOMATION: 'true' }).automation).toBe(false);
     expect(resolveConfig({ PUBLIC_AUTOMATION: 'on' }).automation).toBe(true);
   });
-  it('reads the freshness threshold', () => expect(resolveConfig({ PUBLIC_STATUS_MAX_AGE_HOURS: '24' }).statusMaxAgeHours).toBe(24));
+  it('has no freshness threshold any more: the answer never expires into a third state', () => expect(resolveConfig({})).not.toHaveProperty('statusMaxAgeHours'));
 });
 
 describe('committed production content', () => {

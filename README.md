@@ -36,14 +36,14 @@ uma revisão jurídica rápida é recomendada, mas não bloqueia o build.
 ```
 src/pages/index.astro        página única
 src/components/              SiteHeader, StatusHero, Presometro, NewsList, SiteFooter
-src/data/{status,news,poll}.json   conteúdo real (começa NÃO VERIFICADO / sem notícias)
+src/data/{status,news,poll}.json   conteúdo real (resposta NÃO; notícias)
 src/data/trusted-sources.json      domínios aceitos como fonte
 src/data/fixtures/demo/            conteúdo fictício (só no modo demo)
 scripts/                           validate-content, editor (news:add, status:set), check-dist
 tests/                             vitest
 docs/EDITORIAL.md                  checklist e procedimento de correção
 docs/API.md · docs/DEPLOY.md       contrato da enquete · deploy, rollback e monitoramento
-docs/AUTOMATION.md                 job automático 3x/dia (notícias + status com Gemini), desligado por padrão
+docs/AUTOMATION.md                 job automático 3x/dia (notícias + alerta de sinal de prisão com Gemini); a resposta é NÃO até um SIM humano com fontes
 src/lib/                     tipos, config, status (frescor), news, validate, PollRepository (mock + API)
 worker/                      Cloudflare Worker (API /api/*, crons: retenção + job editorial), migrations/, seeds/, wrangler.jsonc
 .github/workflows/           ci.yml (PRs) e deploy-staging.yml (manual)

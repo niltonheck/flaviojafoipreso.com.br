@@ -11,40 +11,46 @@ export type EditorialConfig = {
   minPublishers: number;     // ...from at least this many different outlets
   maxFeedAgeHours: number;   // a feed whose newest item is older than this is considered dead
   windowHours: number;       // how far back headlines count as "current coverage"
-  minRelevantItems: number;  // headlines about Flávio needed in the window, or we cannot verify
+  minRelevantItems: number;  // headlines about Flávio needed in the window, or the check cannot run
 };
 export const DEFAULT_CONFIG: EditorialConfig = { minHealthyFeeds: 3, minPublishers: 2, maxFeedAgeHours: 48, windowHours: 48, minRelevantItems: 1 };
 
-export type Decision = { status: 'no' | 'unverified'; reason: string; evidence: { url: string; quote: string }[] };
+/**
+ * What a run concluded. The page never changes because of it (the answer is "NÃO." unless a human records "SIM");
+ * a finding only decides whether to renew the "last check" time and whether to email the editor.
+ *  - ok:             a clean check, no arrest reported
+ *  - arrest-signal:  something suggests an arrest, so a human must look (the job NEVER sets "SIM" itself)
+ *  - cannot-verify:  the check could not run properly (feeds down, AI error...), so a human should know
+ */
+export type Finding =
+  | { kind: 'ok' }
+  | { kind: 'arrest-signal'; reason: string; evidence: { url: string; quote: string }[] }
+  | { kind: 'cannot-verify'; reason: string };
 export type Classify = (items: FeedItem[]) => Promise<Verdict>;
 
 const HOUR = 3_600_000;
 
-/**
- * The only place the status is decided. It can only ever return "no" or "unverified": there is deliberately no
- * path to "yes" (a human must confirm that, with sources), and every doubt resolves to "unverified".
- */
-export async function decide(
+export async function assess(
   o: { results: FeedResult[]; relevant: FeedItem[]; now: Date; cfg: EditorialConfig; classify?: Classify },
-): Promise<Decision> {
+): Promise<Finding> {
   const live = o.results.filter((r) => r.ok && r.newest && o.now.getTime() - Date.parse(r.newest) <= o.cfg.maxFeedAgeHours * HOUR);
   const publishers = new Set(live.map((r) => r.publisher));
-  if (live.length < o.cfg.minHealthyFeeds || publishers.size < o.cfg.minPublishers) return { status: 'unverified', reason: 'feeds-unhealthy', evidence: [] };
-  if (o.relevant.length < o.cfg.minRelevantItems) return { status: 'unverified', reason: 'no-recent-coverage', evidence: [] };
+  if (live.length < o.cfg.minHealthyFeeds || publishers.size < o.cfg.minPublishers) return { kind: 'cannot-verify', reason: 'feeds-unhealthy' };
+  if (o.relevant.length < o.cfg.minRelevantItems) return { kind: 'cannot-verify', reason: 'no-recent-coverage' };
 
   const hits = o.relevant.filter((i) => arrestTripwire(i));
-  if (hits.length > 0) return { status: 'unverified', reason: 'arrest-signal-keyword', evidence: hits.slice(0, 3).map((i) => ({ url: i.url, quote: i.title })) };
+  if (hits.length > 0) return { kind: 'arrest-signal', reason: 'arrest-signal-keyword', evidence: hits.slice(0, 3).map((i) => ({ url: i.url, quote: i.title })) };
 
-  if (!o.classify) return { status: 'unverified', reason: 'classifier-unavailable', evidence: [] };
+  if (!o.classify) return { kind: 'cannot-verify', reason: 'classifier-unavailable' };
   let v: Verdict;
   try {
     v = await o.classify(o.relevant);
   } catch (e) {
-    return { status: 'unverified', reason: `classifier-error:${e instanceof ClassifierError ? e.message : 'unexpected'}`, evidence: [] };
+    return { kind: 'cannot-verify', reason: `classifier-error:${e instanceof ClassifierError ? e.message : 'unexpected'}` };
   }
-  if (v.verdict === 'yes') return { status: 'unverified', reason: 'arrest-signal-ai', evidence: v.evidence };
-  if (v.verdict === 'uncertain') return { status: 'unverified', reason: 'ai-uncertain', evidence: v.evidence };
-  return { status: 'no', reason: 'ok', evidence: [] };
+  if (v.verdict === 'yes') return { kind: 'arrest-signal', reason: 'arrest-signal-ai', evidence: v.evidence };
+  if (v.verdict === 'uncertain') return { kind: 'arrest-signal', reason: 'ai-uncertain', evidence: v.evidence };
+  return { kind: 'ok' };
 }
 
 export type EditorialDeps = {
@@ -63,8 +69,33 @@ const REASONS: Record<string, string> = {
   'arrest-signal-ai': 'A IA entendeu que algum item informa prisão efetivada.',
   'ai-uncertain': 'A IA não tem certeza se houve prisão.',
   'classifier-unavailable': 'Classificador (Gemini) não configurado.',
+  'job-crashed': 'O job automático falhou inesperadamente.',
 };
-const describe = (reason: string) => REASONS[reason] ?? (reason.startsWith('classifier-error') ? `Falha no classificador (${reason.split(':')[1]}).` : reason);
+export const describeReason = (reason: string) =>
+  REASONS[reason] ?? (reason.startsWith('classifier-error') ? `Falha no classificador (${reason.split(':')[1]}).` : reason);
+
+/** Builds the email for a change of condition, or null when nothing worth sending changed (no repeat spam). */
+export function alertFor(prevReason: string | null | undefined, reason: string, evidence: { url: string; quote: string }[]): { subject: string; body: string } | null {
+  const was = prevReason ?? 'ok';
+  if (reason === was) return null; // same condition as last time: do not email again
+  const lines = evidence.map((e) => `- "${e.quote}"\n  ${e.url}`).join('\n');
+  if (reason === 'ok') {
+    return { subject: '[FJFP] Checagem automática normalizada', body: `A checagem automática voltou a funcionar normalmente (antes: ${describeReason(was)}).\nO site continua mostrando "NÃO.".` };
+  }
+  if (reason.startsWith('arrest-signal') || reason === 'ai-uncertain') {
+    return {
+      subject: '[FJFP] Possível sinal de prisão: confira',
+      body: [
+        `Motivo: ${describeReason(reason)}`,
+        lines ? `\nTrechos citados:\n${lines}` : '',
+        '\nO site continua mostrando "NÃO.". O job nunca define "SIM".',
+        'Se houve prisão de fato, confirme nas fontes e rode:',
+        '  npm run site:hold -- yes --env production --source <url> [--source <url>]',
+      ].filter(Boolean).join('\n'),
+    };
+  }
+  return { subject: '[FJFP] A checagem automática não conseguiu verificar', body: `Motivo: ${describeReason(reason)}\nO site continua mostrando "NÃO." (a hora da última verificação não foi renovada).` };
+}
 
 export async function runEditorial(db: D1Like, d: EditorialDeps) {
   const now = d.now();
@@ -80,44 +111,36 @@ export async function runEditorial(db: D1Like, d: EditorialDeps) {
     .sort((a, b) => Date.parse(b.publishedAt!) - Date.parse(a.publishedAt!))
     .slice(0, 25);
 
-  // News is verbatim publisher headlines from allowlisted domains, so it publishes even when the status check is degraded.
+  // News is verbatim publisher headlines from allowlisted domains; speculation about a future arrest is not published
+  // (the site never implies an arrest is imminent) but still feeds the check above.
   const publishable = relevant.filter((i) => !speculatesAboutArrest(i));
   const newNews = await addNews(db, publishable.map((i) => ({ headline: i.title, publishedAt: i.publishedAt!, publisher: i.publisher, url: i.url })), now);
-
   const summary = { feedsOk: results.filter((r) => r.ok).length, feedsTotal: results.length, relevant: relevant.length, newNews };
 
-  if (prev?.mode === 'manual') {
-    await logRun(db, now, 'manual-hold', { ...summary, held: prev.status });
-    return { outcome: 'manual-hold' as const, ...summary };
+  // A "SIM" recorded by a human is never touched by the job.
+  if (prev?.status === 'yes') {
+    await logRun(db, now, 'yes-held', summary);
+    return { outcome: 'yes-held' as const, ...summary };
   }
 
-  const decision = await decide({ results, relevant, now, cfg, classify: d.classify });
+  const finding = await assess({ results, relevant, now, cfg, classify: d.classify });
+  const reason = finding.kind === 'ok' ? 'ok' : finding.reason;
+  // The answer stays "no". Only a clean check renews the "last check" time; otherwise the previous time is kept.
   await setStatus(
     db,
     {
-      status: decision.status,
-      checked_at: decision.status === 'no' ? now.toISOString() : null,
+      status: 'no',
+      checked_at: finding.kind === 'ok' ? now.toISOString() : (prev?.checked_at ?? null),
       verified_by: VERIFIED_BY,
       mode: 'auto',
-      reason: decision.reason,
-      evidence: '[]', // an automatic "no" needs none; "yes" is never automatic
+      reason,
+      evidence: '[]',
     },
     now,
   );
-  await logRun(db, now, decision.status === 'no' ? 'renewed' : `unverified:${decision.reason}`, { ...summary, reason: decision.reason });
+  await logRun(db, now, finding.kind === 'ok' ? 'renewed' : `attention:${reason}`, { ...summary, reason });
 
-  const changed = prev ? prev.status !== decision.status : decision.status !== 'no';
-  if (changed && d.alert) {
-    const lines = decision.evidence.map((e) => `- "${e.quote}"\n  ${e.url}`).join('\n');
-    const subject = decision.status === 'unverified' ? '[FJFP] Status caiu para NÃO VERIFICADO' : '[FJFP] Status voltou a NÃO.';
-    const body = [
-      decision.status === 'unverified' ? 'O site agora mostra "NÃO VERIFICADO".' : 'O site voltou a mostrar "NÃO.".',
-      `Motivo: ${describe(decision.reason)}`,
-      lines ? `\nTrechos citados:\n${lines}` : '',
-      `\nFeeds lidos: ${summary.feedsOk}/${summary.feedsTotal}. Manchetes sobre ele: ${summary.relevant}.`,
-      decision.reason.startsWith('arrest-signal') ? '\nSe houve prisão de fato, confirme nas fontes e defina o status "SIM" manualmente (com fontes). O job nunca define "SIM".' : '',
-    ].filter(Boolean).join('\n');
-    await d.alert(subject, body).catch(() => {}); // an email failure must never break the job
-  }
-  return { outcome: decision.status === 'no' ? ('renewed' as const) : ('unverified' as const), decision, ...summary };
+  const mail = alertFor(prev ? prev.reason : null, reason, finding.kind === 'arrest-signal' ? finding.evidence : []);
+  if (mail && d.alert) await d.alert(mail.subject, mail.body).catch(() => {}); // an email failure must never break the job
+  return { outcome: finding.kind === 'ok' ? ('renewed' as const) : ('attention' as const), finding, ...summary };
 }

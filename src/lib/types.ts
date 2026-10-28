@@ -1,4 +1,5 @@
-export type ArrestStatus = 'yes' | 'no' | 'unverified';
+/** The answer is "no" unless a human has confirmed an arrest with sources. There is no third state. */
+export type ArrestStatus = 'yes' | 'no';
 
 export type Source = {
   title: string;

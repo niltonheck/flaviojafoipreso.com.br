@@ -51,7 +51,8 @@ export function createApi(deps: ApiDeps = {}) {
     try { evidence = JSON.parse(s?.evidence ?? '[]'); } catch { /* keep [] */ }
     const value = s
       ? {
-          status: { status: s.status, checkedAt: s.checked_at, verifiedBy: s.verified_by, mode: s.mode, evidence },
+          // The page's answer is "no" unless a human recorded "yes" with at least one source (legacy values read as "no").
+          status: { status: s.status === 'yes' && Array.isArray(evidence) && evidence.length > 0 ? 'yes' : 'no', checkedAt: s.checked_at, verifiedBy: s.verified_by, mode: s.mode, evidence },
           news: n.results.map((r) => ({ headline: r.headline, publishedAt: r.published_at, publisher: r.publisher, url: r.url })),
         }
       : null;

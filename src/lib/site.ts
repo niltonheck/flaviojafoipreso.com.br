@@ -19,7 +19,7 @@ const iso = (v: unknown): v is string => str(v, 40) && !Number.isNaN(Date.parse(
 export function parseSite(raw: unknown): SiteData | null {
   const r = raw as { status?: Record<string, unknown>; news?: unknown } | null;
   const s = r?.status;
-  if (!s || typeof s !== 'object' || !['yes', 'no', 'unverified'].includes(s.status as string)) return null;
+  if (!s || typeof s !== 'object' || !['yes', 'no', 'unverified'].includes(s.status as string)) return null; // legacy "unverified" is read as "no"
   if (s.mode !== 'auto' && s.mode !== 'manual') return null;
   if (!(s.checkedAt === null || iso(s.checkedAt)) || !str(s.verifiedBy, 80)) return null;
   const evidenceRaw = Array.isArray(s.evidence) ? s.evidence.slice(0, 10) : null;
@@ -35,5 +35,5 @@ export function parseSite(raw: unknown): SiteData | null {
     if (!n || !str(n.headline, 300) || !iso(n.publishedAt) || !str(n.publisher, 80) || !https(n.url)) return null;
     news.push({ headline: n.headline, publishedAt: n.publishedAt, publisher: n.publisher, url: n.url });
   }
-  return { status: { status: s.status as ArrestStatus, checkedAt: s.checkedAt as string | null, verifiedBy: s.verifiedBy as string, mode: s.mode, evidence }, news };
+  return { status: { status: (s.status === 'yes' ? 'yes' : 'no') as ArrestStatus, checkedAt: s.checkedAt as string | null, verifiedBy: s.verifiedBy as string, mode: s.mode, evidence }, news };
 }

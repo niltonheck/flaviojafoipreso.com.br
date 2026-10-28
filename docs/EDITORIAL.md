@@ -10,10 +10,9 @@ Nada é promovido automaticamente a partir de feeds de notícias ou de IA.
 npm run news:add -- https://g1.globo.com/…            # use --dry-run para só visualizar
 #    se faltar algo: --headline "…" --publisher "…" --date 2026-10-27 --summary "…"
 
-# 2. Status: reconfirme (a cada ≤72 h, senão o site mostra "NÃO VERIFICADO")
-npm run status:set -- no                                      # "NÃO": basta reconfirmar (sem fontes)
+# 2. Status: a resposta é NÃO até haver um SIM concreto (não há "NÃO VERIFICADO" nem expiração)
+npm run status:set -- no                                      # "NÃO" (atualiza a hora da última verificação)
 npm run status:set -- yes --source <url> [--source <url>]    # "SIM" exige fonte(s) confiável(is)
-npm run status:set -- unverified                              # na dúvida
 
 npm run validate && npm test      # integridade dos dados
 git diff                          # revise, depois commit + PR
@@ -44,14 +43,15 @@ Correção de uma notícia: adicione uma nova entrada com `correctionOf` apontan
 
 ## Correção de status falso (emergência)
 
-1. `npm run status:set -- unverified` (ou reverter o commit) e publicar.
+1. `npm run status:set -- no` (ou reverter o commit) e publicar.
 2. Fazer o deploy e invalidar o cache da página (purge no Cloudflare).
 3. Registrar a correção (`editorialNote` e mensagem de commit).
 4. Se houver imagem de pré-visualização com status, regenerar (por padrão ela é neutra).
 
-## Frescor e limite
+## Resposta padrão e SIM
 
-`PUBLIC_STATUS_MAX_AGE_HOURS` (padrão **72**). O HTML estático traz a data da checagem; um script mínimo no
-navegador rebaixa para "NÃO VERIFICADO" se expirou. Sem JavaScript o visitante vê a resposta do último build, com
-um aviso de "status válido em …". Um rebuild agendado mantém a data de build recente, mas **não** substitui a
-reverificação humana.
+A resposta é **NÃO.** a menos que um humano registre **SIM com ao menos uma fonte confiável**. Não existe "NÃO
+VERIFICADO" e nada expira: uma checagem antiga só deixa a hora de "última verificação" antiga. A rotina automática
+(docs/AUTOMATION.md) publica notícias e avisa por e-mail quando vê sinal de prisão ou não consegue checar, mas **nunca**
+define "SIM". Para registrar um SIM no ar: `npm run site:hold -- yes --env production --source <url>`; para voltar ao NÃO:
+`npm run site:auto -- --env production`.

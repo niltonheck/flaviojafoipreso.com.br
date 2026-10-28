@@ -16,18 +16,24 @@ const errors = (i: { level: string }[]) => i.filter((x) => x.level === 'error');
 
 describe('validateStatus', () => {
   it('accepts a complete record', () => expect(errors(validateStatus(status(), strict))).toEqual([]));
-  it('accepts unverified without evidence or date', () =>
-    expect(errors(validateStatus(status({ status: 'unverified', checkedAt: null, evidence: [] }), strict))).toEqual([]));
-  it.each(['yes', 'no'] as const)('rejects %s without checkedAt', (s) =>
-    expect(errors(validateStatus(status({ status: s, checkedAt: null }), strict)).length).toBeGreaterThan(0));
+  it('accepts "no" with no evidence and even no check time (it is the default answer)', () => {
+    expect(errors(validateStatus(status({ status: 'no', checkedAt: null, evidence: [] }), strict))).toEqual([]);
+    expect(errors(validateStatus(status({ status: 'no', evidence: [] }), strict))).toEqual([]);
+  });
+  it('rejects "yes" without checkedAt', () =>
+    expect(errors(validateStatus(status({ status: 'yes', checkedAt: null }), strict)).length).toBeGreaterThan(0));
+  it('there is no "unverified" status any more', () =>
+    expect(errors(validateStatus(status({ status: 'unverified' as never, checkedAt: null, evidence: [] }), strict)).length).toBeGreaterThan(0));
   it('rejects "yes" without evidence', () =>
     expect(errors(validateStatus(status({ status: 'yes', evidence: [] }), strict)).length).toBeGreaterThan(0));
   it('accepts "no" with a fresh check and no sources', () =>
     expect(errors(validateStatus(status({ status: 'no', evidence: [] }), strict))).toEqual([]));
   it('still validates sources when "no" carries them', () =>
     expect(errors(validateStatus(status({ status: 'no', evidence: [{ ...src, url: 'http://g1.globo.com/a' }] }), strict))).toHaveLength(1));
-  it('still requires checkedAt for "no" (a stale/unchecked "no" is never valid)', () =>
-    expect(errors(validateStatus(status({ status: 'no', checkedAt: null, evidence: [] }), strict)).length).toBeGreaterThan(0));
+  it('still rejects a malformed or future checkedAt on "no"', () => {
+    expect(errors(validateStatus(status({ status: 'no', checkedAt: 'yesterday', evidence: [] }), strict)).length).toBeGreaterThan(0);
+    expect(errors(validateStatus(status({ status: 'no', checkedAt: '2026-10-28T09:00:00-03:00', evidence: [] }), strict)).length).toBeGreaterThan(0);
+  });
   it('rejects non-HTTPS evidence', () =>
     expect(errors(validateStatus(status({ evidence: [{ ...src, url: 'http://g1.globo.com/a' }] }), strict))).toHaveLength(1));
   it('rejects untrusted domains', () =>

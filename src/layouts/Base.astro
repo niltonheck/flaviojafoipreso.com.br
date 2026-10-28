@@ -40,7 +40,7 @@ const image = new URL('/og-image.png', Astro.site).href;
     <div class="shell">
       <SiteHeader />
       <main id="conteudo"><slot /></main>
-      <SiteFooter demo={cfg.mode === 'demo'} maxAgeHours={cfg.statusMaxAgeHours} pollMode={cfg.pollMode} automation={cfg.automation} />
+      <SiteFooter demo={cfg.mode === 'demo'} pollMode={cfg.pollMode} automation={cfg.automation} />
     </div>
   </body>
 </html>
