@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { canonicalUrl, fetchFeeds, parseFeed } from '../worker/feeds.ts';
-import { arrestTripwire, isAboutFlavio, speculatesAboutArrest } from '../worker/relevance.ts';
+import { arrestTripwire, isAboutFlavio, isOnTopic, speculatesAboutArrest } from '../worker/relevance.ts';
 import { FEEDS, G1_A, fakeFetch, rss } from './helpers/feeds.ts';
 
 describe('canonicalUrl', () => {
@@ -94,4 +94,39 @@ describe('speculatesAboutArrest (never imply an imminent arrest)', () => {
     '“Não é fuga, mas exílio”, dizem bolsonaristas sobre Flávio sair do país',
     'Leia a cronologia dos fatos que levaram Flávio a deixar o Brasil',
   ])('allows: %s', (title) => expect(speculatesAboutArrest({ title })).toBe(false));
+});
+
+describe('isOnTopic (the story the site follows: his departure, the US, his own statements)', () => {
+  const after = '2026-10-28T10:00:00.000Z';
+  it.each([
+    'Avião com Flávio Bolsonaro e família segue para Miami',
+    'Argentina confirma que Flávio Bolsonaro cruzou fronteira pelo Paraná com a família',
+    '“Por mim, tudo bem”, diz Trump sobre Flávio Bolsonaro nos EUA',
+    'Flávio Bolsonaro chega aos EUA, diz BBC',
+    '“Não é fuga, mas exílio”, dizem bolsonaristas sobre Flávio sair do país',
+    'Leia a cronologia dos fatos que levaram Flávio a deixar o Brasil',
+    'Coordenador de campanha se diz surpreso com fuga de Flávio',
+    'Flávio Bolsonaro não entrega passaporte à PF e descumpre ordem de Moraes',
+    'Oposição na Argentina pede informações sobre entrada de Flávio no país',
+    'Trump diz que aprovaria visto de Flávio, mas que não sabe o paradeiro do senador',
+  ])('publishes: %s', (title) => expect(isOnTopic({ title, publishedAt: after })).toBe(true));
+
+  it.each([
+    'Dominado por Flávio Bolsonaro, apenas 10 cidades do Centro-Oeste de MG deram vitória a Lula',
+    'Lula ganhou mais votos do que Flávio Bolsonaro nas 20 cidades com maior queda de abstenção no 2º turno',
+    'Aliados de Flávio Bolsonaro adiam mea-culpa e atribuem derrota a pacote de Lula',
+    'Resumão diário #2207: Voo de Flávio Bolsonaro e família deixa Equador com destino a Miami',
+    'Neymar reage a post de Richarlison que ironizou fuga de Flávio Bolsonaro',
+    'Podcast discute reações e impactos iniciais da fuga de Flávio Bolsonaro',
+    'O Assunto #1834: a rota de fuga de Flávio Bolsonaro',
+  ])('does not publish: %s', (title) => expect(isOnTopic({ title, publishedAt: after })).toBe(false));
+
+  it('counts his OWN statements, but only from the date the story began', () => {
+    const title = 'Flávio Bolsonaro diz que vai liderar a oposição';
+    expect(isOnTopic({ title, publishedAt: '2026-10-28T10:00:00.000Z' })).toBe(true);
+    expect(isOnTopic({ title, publishedAt: '2026-10-26T10:00:00.000Z' })).toBe(false); // an election-night statement
+    expect(isOnTopic({ title })).toBe(false); // no date, no statement
+    expect(isOnTopic({ title: 'Flávio Bolsonaro publica vídeo', publishedAt: after })).toBe(true);
+    expect(isOnTopic({ title: 'Carta de Flávio Bolsonaro aos apoiadores', publishedAt: after })).toBe(true);
+  });
 });

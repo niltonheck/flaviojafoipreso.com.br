@@ -51,3 +51,10 @@ export const latestNews = (db: D1Like, limit = 3) =>
 
 export const logRun = (db: D1Like, now: Date, outcome: string, summary: unknown) =>
   db.prepare('INSERT INTO editorial_runs (ran_at, outcome, summary) VALUES (?, ?, ?)').bind(now.toISOString(), outcome, JSON.stringify(summary)).run();
+
+export const listNews = (db: D1Like) => db.prepare('SELECT id, headline, published_at, publisher, url FROM news_items').all<NewsRow>();
+
+export async function deleteNews(db: D1Like, ids: string[]) {
+  if (ids.length === 0) return;
+  await db.batch(ids.map((id) => db.prepare('DELETE FROM news_items WHERE id = ?').bind(id)));
+}

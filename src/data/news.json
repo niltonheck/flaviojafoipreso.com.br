@@ -11,17 +11,6 @@
     "reviewedBy": "niltonheck"
   },
   {
-    "id": "2026-10-27-flavio-bolsonaro-respondera-a-dois-inque",
-    "headline": "Flávio Bolsonaro responderá a dois inquéritos sem foro especial em 2027",
-    "publishedAt": "2026-10-27T11:21:14.000Z",
-    "source": {
-      "publisher": "UOL",
-      "url": "https://noticias.uol.com.br/ultimas-noticias/redacao/2026/10/27/flavio-bolsonaro-respondera-a-dois-inqueritos-sem-foro-especial-em-2027.ghtm"
-    },
-    "reviewedAt": "2026-10-27T12:45:03-03:00",
-    "reviewedBy": "niltonheck"
-  },
-  {
     "id": "2026-10-27-orgao-de-migracao-e-membro-do-governo-mi",
     "headline": "Órgão de migração e membro do governo Milei negam que Flávio Bolsonaro esteja na Argentina",
     "publishedAt": "2026-10-27T11:19:00-03:00",
@@ -118,6 +107,72 @@
       "url": "https://agenciabrasil.ebc.com.br/politica/noticia/2026-10/coordenador-de-campanha-se-diz-surpreso-com-fuga-de-flavio"
     },
     "reviewedAt": "2026-10-27T23:10:26-03:00",
+    "reviewedBy": "niltonheck"
+  },
+  {
+    "id": "2026-10-28-aviao-com-flavio-bolsonaro-e-familia-seg",
+    "headline": "Avião com Flávio Bolsonaro e família segue para Miami",
+    "publishedAt": "2026-10-28T12:03:00.000Z",
+    "source": {
+      "publisher": "Agência Brasil",
+      "url": "https://agenciabrasil.ebc.com.br/politica/noticia/2026-10/aviao-com-flavio-bolsonaro-e-familia-segue-para-miami"
+    },
+    "reviewedAt": "2026-10-28T09:31:08-03:00",
+    "reviewedBy": "niltonheck"
+  },
+  {
+    "id": "2026-10-28-flavio-bolsonaro-e-familia-deixam-equado",
+    "headline": "Flávio Bolsonaro e família deixam Equador em voo para Miami, nos EUA",
+    "publishedAt": "2026-10-28T05:21:41.000Z",
+    "source": {
+      "publisher": "G1",
+      "url": "https://g1.globo.com/mundo/noticia/2026/10/28/flavio-bolsonaro-e-familia-entraram-na-argentina-e-seguiram-em-voo-privado-para-o-equador-diz-migracao-argentina.ghtml"
+    },
+    "reviewedAt": "2026-10-28T09:31:08-03:00",
+    "reviewedBy": "niltonheck"
+  },
+  {
+    "id": "2026-10-28-argentina-confirma-que-flavio-bolsonaro-",
+    "headline": "Argentina confirma que Flávio Bolsonaro cruzou fronteira pelo Paraná com a família; entenda como funciona a fiscalização na ponte",
+    "publishedAt": "2026-10-28T11:28:05.000Z",
+    "source": {
+      "publisher": "G1",
+      "url": "https://g1.globo.com/pr/oeste-sudoeste/noticia/2026/10/28/argentina-confirma-que-flavio-bolsonaro-cruzou-fronteira-pelo-parana.ghtml"
+    },
+    "reviewedAt": "2026-10-28T09:31:09-03:00",
+    "reviewedBy": "niltonheck"
+  },
+  {
+    "id": "2026-10-28-por-mim-tudo-bem-diz-trump-sobre-flavio-",
+    "headline": "“Por mim, tudo bem”, diz Trump sobre Flávio Bolsonaro nos EUA",
+    "publishedAt": "2026-10-28T07:40:26+00:00",
+    "source": {
+      "publisher": "Poder360",
+      "url": "https://www.poder360.com.br/poder-internacional/por-mim-tudo-bem-diz-trump-sobre-flavio-bolsonaro-nos-eua/"
+    },
+    "reviewedAt": "2026-10-28T09:31:11-03:00",
+    "reviewedBy": "niltonheck"
+  },
+  {
+    "id": "2026-10-28-fuga-de-flavio-bolsonaro-vira-guerra-de-",
+    "headline": "Fuga de Flávio Bolsonaro vira guerra de contrainformação",
+    "publishedAt": "2026-10-28T12:21:00.000Z",
+    "source": {
+      "publisher": "Folha de S.Paulo",
+      "url": "https://www1.folha.uol.com.br/poder/2026/10/fuga-de-flavio-bolsonaro-vira-guerra-de-contrainformacao.shtml"
+    },
+    "reviewedAt": "2026-10-28T09:31:22-03:00",
+    "reviewedBy": "niltonheck"
+  },
+  {
+    "id": "2026-10-28-trump-diz-que-aprovaria-visto-de-flavio-",
+    "headline": "Trump diz que aprovaria visto de Flávio, mas que não sabe o paradeiro do senador",
+    "publishedAt": "2026-10-28T05:32:00.000Z",
+    "source": {
+      "publisher": "Folha de S.Paulo",
+      "url": "https://www1.folha.uol.com.br/poder/2026/10/trump-diz-que-aprovaria-visto-de-flavio-mas-que-nao-sabe-o-paradeiro-do-senador.shtml"
+    },
+    "reviewedAt": "2026-10-28T09:31:24-03:00",
     "reviewedBy": "niltonheck"
   }
 ]

@@ -20,7 +20,10 @@ const BRT_OFFSET_MS = -3 * 3_600_000; // Brazil has had no DST since 2019
 const nowBrasilia = () => new Date(Date.now() + BRT_OFFSET_MS).toISOString().replace(/\.\d+Z$/, '-03:00');
 const die = (m: string): never => { console.error(`✖ ${m}`); process.exit(1); };
 
-async function inspect(url: string) {
+async function inspect(rawUrl: string) {
+  // Folha's feeds wrap links as ".../*https://www1.folha.uol.com.br/...": use the real article URL.
+  const star = rawUrl.lastIndexOf('*http');
+  const url = star >= 0 ? rawUrl.slice(star + 1) : rawUrl;
   let u: URL;
   try { u = new URL(url); } catch { return die(`URL inválida: ${url}`); }
   if (u.protocol !== 'https:') die('use uma URL HTTPS');

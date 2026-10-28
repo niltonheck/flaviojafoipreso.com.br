@@ -15,10 +15,16 @@ exactly `"true"` (the kill switch).
 ## What it does each run
 1. Fetch the feeds in `src/data/feeds.json` (G1, Folha, Poder360, Agência Brasil). Only links on
    `src/data/trusted-sources.json` are kept; redirect wrappers are unwrapped; tracking params are dropped.
-2. **News:** headlines whose title names Flávio Bolsonaro (not Flávio Dino, not a passing mention) are stored
-   **verbatim** with publisher, link and timestamp. No AI writes any text. The page shows the 3 newest. Headlines that
-   speculate about a *future* arrest ("prisão preventiva", "pode ser preso", "pedido de prisão"…) are not published
-   (the site never implies an arrest is imminent) but are still shown to the check below.
+2. **News**, focused on one story: headlines whose title names Flávio Bolsonaro (not Flávio Dino, not a passing mention)
+   **and** are directly about **his departure from Brazil** (flight, route, border, passport order, Argentina/Equador),
+   **the US** (Miami, Trump, visa, White House…), or **his own statements** made since the story began
+   (`src/data/topic.json`, `since`). Roundups, podcasts and celebrity reactions are excluded, as is everything else that
+   merely names him (election maps, polls, party politics). Rules live in `worker/relevance.ts` (`isOnTopic`).
+   They are stored **verbatim** with publisher, link and timestamp. No AI writes any text. The page shows the 3 newest.
+   Headlines that speculate about a *future* arrest ("prisão preventiva", "pode ser preso", "pedido de prisão"…) are not
+   published (the site never implies an arrest is imminent). **Everything that names him, on-topic or not, still feeds the
+   arrest check below.** Each run also removes stored headlines that no longer qualify, so tightening the rules cleans
+   the list by itself.
 3. **The check**, in this order:
    1. enough live feeds (≥3 feeds, ≥2 outlets, newest item < 48 h old), else `cannot-verify: feeds-unhealthy`
    2. at least one headline about him in the last 48 h, else `cannot-verify: no-recent-coverage`

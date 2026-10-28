@@ -42,6 +42,33 @@ describe('a clean check', () => {
     expect(runs(raw)).toEqual(['renewed']);
   });
 
+  it('publishes only on-topic headlines, while EVERYTHING that names him still reaches the arrest check', async () => {
+    const classify = vi.fn(NO);
+    const routes = allFeeds([
+      ...NORMAL,
+      { title: 'Dominado por Flávio Bolsonaro, apenas 10 cidades do Centro-Oeste de MG deram vitória a Lula', link: 'https://g1.globo.com/mg/off-topic.ghtml', ageHours: 1 },
+      { title: 'Avião com Flávio Bolsonaro e família segue para Miami', link: 'https://agenciabrasil.ebc.com.br/politica/noticia/2026-10/aviao-miami', ageHours: 1 },
+    ]);
+    const { raw } = await go({ routes, classify });
+    const published = (raw.prepare('SELECT headline FROM news_items').all() as { headline: string }[]).map((r) => r.headline).sort();
+    expect(published).toEqual([NORMAL[0].title, 'Avião com Flávio Bolsonaro e família segue para Miami'].sort());
+    const seenByCheck = (classify.mock.calls[0][0] as { title: string }[]).map((i) => i.title);
+    expect(seenByCheck.some((t) => /Dominado por Flávio/.test(t))).toBe(true);
+  });
+
+  it('removes stored headlines that no longer qualify when the topic rules tighten (self-cleaning)', async () => {
+    const e = makeEnv();
+    await addNews(e.env.DB, [
+      { headline: 'Dominado por Flávio Bolsonaro, apenas 10 cidades deram vitória a Lula', publishedAt: '2026-10-28T08:30:00.000Z', publisher: 'G1', url: 'https://g1.globo.com/old-off-topic.ghtml' },
+      { headline: 'Flávio Bolsonaro chega aos EUA, diz BBC', publishedAt: '2026-10-28T01:16:00.000Z', publisher: 'G1', url: 'https://g1.globo.com/old-on-topic.ghtml' },
+    ], NOW);
+    const r = await runEditorial(e.env.DB, { now: () => NOW, fetchFn: fakeFetch(allFeeds(NORMAL)), feeds: FEEDS, classify: NO });
+    expect(r.pruned).toBe(1);
+    const left = (e.raw.prepare('SELECT headline FROM news_items').all() as { headline: string }[]).map((x) => x.headline);
+    expect(left).toContain('Flávio Bolsonaro chega aos EUA, diz BBC');
+    expect(left.some((h) => /Dominado/.test(h))).toBe(false);
+  });
+
   it('does not duplicate headlines on later runs', async () => {
     const e = await go();
     const again = await runEditorial(e.env.DB, { now: () => NOW, fetchFn: fakeFetch(allFeeds(NORMAL)), feeds: FEEDS, classify: NO });

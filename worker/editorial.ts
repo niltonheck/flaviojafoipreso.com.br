@@ -1,7 +1,7 @@
 import { ClassifierError, type Verdict } from './gemini.ts';
 import { fetchFeeds, type Feed, type FeedItem, type FeedResult } from './feeds.ts';
-import { arrestTripwire, isAboutFlavio, speculatesAboutArrest } from './relevance.ts';
-import { addNews, getStatus, logRun, setStatus } from './siteState.ts';
+import { arrestTripwire, isAboutFlavio, isOnTopic, speculatesAboutArrest } from './relevance.ts';
+import { addNews, deleteNews, getStatus, listNews, logRun, setStatus } from './siteState.ts';
 import type { D1Like } from './types.ts';
 
 export const VERIFIED_BY = 'auto-gemini';
@@ -105,17 +105,21 @@ export async function runEditorial(db: D1Like, d: EditorialDeps) {
   const results = await fetchFeeds(d.feeds, d.fetchFn);
   const cutoff = now.getTime() - cfg.windowHours * HOUR;
   const seen = new Set<string>();
-  const relevant = results
+  const all = results
     .flatMap((r) => r.items)
     .filter((i) => isAboutFlavio(i) && i.publishedAt && Date.parse(i.publishedAt) >= cutoff && !seen.has(i.url) && seen.add(i.url))
-    .sort((a, b) => Date.parse(b.publishedAt!) - Date.parse(a.publishedAt!))
-    .slice(0, 25);
+    .sort((a, b) => Date.parse(b.publishedAt!) - Date.parse(a.publishedAt!));
+  // Everything that names him feeds the arrest check; only on-topic headlines are published as news.
+  const relevant = all.slice(0, 25);
 
-  // News is verbatim publisher headlines from allowlisted domains; speculation about a future arrest is not published
-  // (the site never implies an arrest is imminent) but still feeds the check above.
-  const publishable = relevant.filter((i) => !speculatesAboutArrest(i));
+  // News is verbatim publisher headlines from allowlisted domains. The site follows one story (his departure from Brazil,
+  // the US, his own statements), and never implies an arrest is imminent, so speculation about a future arrest is not published.
+  const publishable = all.filter((i) => isOnTopic(i) && !speculatesAboutArrest(i)).slice(0, 25);
   const newNews = await addNews(db, publishable.map((i) => ({ headline: i.title, publishedAt: i.publishedAt!, publisher: i.publisher, url: i.url })), now);
-  const summary = { feedsOk: results.filter((r) => r.ok).length, feedsTotal: results.length, relevant: relevant.length, newNews };
+  // Self-cleaning: if the topic rules change, rows stored under the old rules that no longer qualify are removed.
+  const stale = (await listNews(db)).results.filter((n) => !isOnTopic({ title: n.headline, publishedAt: n.published_at }) || speculatesAboutArrest({ title: n.headline }));
+  if (stale.length > 0) await deleteNews(db, stale.map((n) => n.id));
+  const summary = { feedsOk: results.filter((r) => r.ok).length, feedsTotal: results.length, relevant: relevant.length, newNews, pruned: stale.length };
 
   // A "SIM" recorded by a human is never touched by the job.
   if (prev?.status === 'yes') {
