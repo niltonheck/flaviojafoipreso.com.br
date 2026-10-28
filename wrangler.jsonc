@@ -11,8 +11,11 @@
     "run_worker_first": ["/api/*"]
   },
   "observability": { "enabled": true },
-  // Daily retention job at 02:00 Brasília (05:00 UTC): rolls finished days into totals and deletes voter codes.
-  "triggers": { "crons": ["0 5 * * *"] },
+  // 05:00 UTC (02:00 Brasília): vote-code retention. Every hour: automated editorial job (docs/AUTOMATION.md), which stays
+  // inert unless AUTOMATION_ENABLED is "true". Secrets (never in git): GEMINI_API_KEY, ALERT_TO.
+  "triggers": { "crons": ["0 5 * * *", "0 * * * *"] },
+  "vars": { "AUTOMATION_ENABLED": "false", "GEMINI_MODEL": "gemini-2.5-flash", "ALERT_FROM": "alertas@flaviojafoipreso.com.br" },
+  "send_email": [{ "name": "ALERTS" }],
   "d1_databases": [
     {
       "binding": "DB",
@@ -32,7 +35,9 @@
       "workers_dev": true,
       "preview_urls": false,
       "observability": { "enabled": true },
-      "triggers": { "crons": ["0 5 * * *"] },
+      "triggers": { "crons": ["0 5 * * *", "0 * * * *"] },
+  "vars": { "AUTOMATION_ENABLED": "false", "GEMINI_MODEL": "gemini-2.5-flash", "ALERT_FROM": "alertas@flaviojafoipreso.com.br" },
+  "send_email": [{ "name": "ALERTS" }],
       "d1_databases": [
         {
           "binding": "DB",
@@ -54,7 +59,9 @@
       "preview_urls": false,
       "routes": [{ "pattern": "flaviojafoipreso.com.br", "custom_domain": true }],
       "observability": { "enabled": true },
-      "triggers": { "crons": ["0 5 * * *"] },
+      "triggers": { "crons": ["0 5 * * *", "0 * * * *"] },
+  "vars": { "AUTOMATION_ENABLED": "false", "GEMINI_MODEL": "gemini-2.5-flash", "ALERT_FROM": "alertas@flaviojafoipreso.com.br" },
+  "send_email": [{ "name": "ALERTS" }],
       "d1_databases": [
         {
           "binding": "DB",

@@ -41,23 +41,16 @@ const NOTE: Record<string, string> = {
   <p class="hero__answer" role="status" data-answer>{ANSWER_TEXT[status]}</p>
   <p class="hero__meta">
     <span data-note>{status === 'unverified' ? NOTE[resolved.reason] : 'Até onde foi possível verificar.'}</span>
-    {checkedAtLabel && (
-      <>
-        <span class="sep" aria-hidden="true">·</span>
-        <span>Última verificação: <time datetime={record.checkedAt!}>{checkedAtLabel} (Brasília)</time></span>
-      </>
-    )}
+    <span class="sep" data-verif-sep aria-hidden="true" hidden={!checkedAtLabel}>·</span>
+    <span data-verif hidden={!checkedAtLabel}><span data-verif-label>Última verificação:</span>{' '}<time data-verif-time datetime={record.checkedAt ?? ''}>{checkedAtLabel ? `${checkedAtLabel} (Brasília)` : ''}</time></span>
     <span class="sep" aria-hidden="true">·</span>
     <a href="#sobre">Como verificamos</a>
   </p>
-  {record.evidence.length > 0 && (
-    <p class="hero__sources">
-      Fontes:
-      {record.evidence.map((s, i) => (
-        <>{i > 0 ? ', ' : ' '}<a href={s.url} target="_blank" rel="noopener noreferrer">{s.publisher}</a></>
-      ))}
-    </p>
-  )}
+  <p class="hero__sources" data-sources hidden={record.evidence.length === 0}>
+    Fontes:{' '}<span data-sources-list>{record.evidence.map((s, i) => (
+      <>{i > 0 ? ', ' : ''}<a href={s.url} target="_blank" rel="noopener noreferrer">{s.publisher}</a></>
+    ))}</span>
+  </p>
   {demo && <p class="hero__demo">Exibição de demonstração — conteúdo local, sem verificação editorial.</p>}
   {status !== 'unverified' && (
     <noscript>
@@ -70,7 +63,10 @@ const NOTE: Record<string, string> = {
 
 <script>
   // Freshness guard (SPEC C §3): the static HTML cannot age itself, so re-check in the browser.
-  import { ANSWER_TEXT, resolveStatus } from '../lib/status';
+  // It also applies the automated status served by the Worker (docs/AUTOMATION.md) when available.
+  import { ANSWER_TEXT, AUTO_MAX_AGE_HOURS, formatBrasilia, resolveStatus } from '../lib/status';
+  import { SITE_EVENT, type SiteData, type SiteEvidence } from '../lib/site';
+  import type { ArrestStatus } from '../lib/types';
 
   // A missing portrait must not break the layout (no inline handlers: the CSP forbids them).
   const img = document.querySelector<HTMLImageElement>('img[data-portrait]');
@@ -82,12 +78,55 @@ const NOTE: Record<string, string> = {
 
   const hero = document.querySelector<HTMLElement>('.hero[data-declared-status]');
   if (hero) {
-    const declared = hero.dataset.declaredStatus as 'yes' | 'no' | 'unverified';
-    const r = resolveStatus(declared, hero.dataset.checkedAt || null, new Date(), Number(hero.dataset.maxAgeHours));
-    if (r.status !== hero.dataset.status) {
+    const maxAge = Number(hero.dataset.maxAgeHours);
+    const $ = <T extends HTMLElement>(s: string) => hero.querySelector<T>(s)!;
+
+    const apply = (declared: ArrestStatus, checkedAt: string | null, limitHours = maxAge) => {
+      const r = resolveStatus(declared, checkedAt, new Date(), limitHours);
+      hero.dataset.declaredStatus = declared;
+      hero.dataset.checkedAt = checkedAt ?? '';
       hero.dataset.status = r.status;
-      hero.querySelector('[data-answer]')!.textContent = ANSWER_TEXT[r.status];
-      hero.querySelector('[data-note]')!.textContent = 'A última verificação expirou, então a resposta está suspensa.';
-    }
+      $('[data-answer]').textContent = ANSWER_TEXT[r.status];
+      $('[data-note]').textContent =
+        r.status !== 'unverified' ? 'Até onde foi possível verificar.'
+        : r.reason === 'stale' ? 'A última verificação expirou, então a resposta está suspensa.'
+        : 'Ainda sem verificação confiável.';
+    };
+
+    const showVerification = (checkedAt: string | null, auto: boolean) => {
+      const on = checkedAt !== null;
+      $('[data-verif]').hidden = !on;
+      $('[data-verif-sep]').hidden = !on;
+      if (!on) return;
+      $('[data-verif-label]').textContent = auto ? 'Verificação automática:' : 'Última verificação:';
+      const t = $<HTMLTimeElement>('[data-verif-time]');
+      t.dateTime = checkedAt;
+      t.textContent = `${formatBrasilia(checkedAt)} (Brasília)`;
+    };
+
+    const showSources = (evidence: SiteEvidence[]) => {
+      const list = $('[data-sources-list]');
+      list.replaceChildren();
+      evidence.forEach((e, i) => {
+        if (i > 0) list.append(', ');
+        const a = document.createElement('a'); // href is https-only: validated by parseSite
+        a.href = e.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = e.publisher;
+        list.append(a);
+      });
+      $('[data-sources]').hidden = evidence.length === 0;
+    };
+
+    // 1) the build-time snapshot, aged against the clock
+    apply(hero.dataset.declaredStatus as ArrestStatus, hero.dataset.checkedAt || null);
+
+    // 2) the live automated state, if the Worker served one
+    const onSite = (s: SiteData) => {
+      apply(s.status.status, s.status.checkedAt, s.status.mode === 'auto' ? AUTO_MAX_AGE_HOURS : maxAge);
+      showVerification(s.status.checkedAt, s.status.mode === 'auto');
+      showSources(s.status.evidence);
+    };
+    const early = (window as unknown as { __fjfpSite?: SiteData }).__fjfpSite;
+    if (early) onSite(early);
+    document.addEventListener(SITE_EVENT, (e) => onSite((e as CustomEvent<SiteData>).detail));
   }
 </script>

@@ -22,8 +22,10 @@ export class ApiPollRepository implements PollRepository {
   private base: string;
   private http: typeof fetch;
   private timeoutMs: number;
+  private onSite?: (site: unknown) => void;
 
-  constructor(opts: { pollId?: string; baseUrl?: string; fetchImpl?: typeof fetch; timeoutMs?: number } = {}) {
+  constructor(opts: { pollId?: string; baseUrl?: string; fetchImpl?: typeof fetch; timeoutMs?: number; onSite?: (site: unknown) => void } = {}) {
+    this.onSite = opts.onSite;
     this.pollId = opts.pollId ?? null;
     this.base = opts.baseUrl ?? '';
     this.http = opts.fetchImpl ?? ((...a) => fetch(...a));
@@ -51,7 +53,11 @@ export class ApiPollRepository implements PollRepository {
   async getResults(): Promise<PollResults> {
     const res = await this.request('/api/polls/current');
     if (!res.ok) throw new PollError('unavailable');
-    return this.toResults(parse(await res.json().catch(() => null)));
+    const body = await res.json().catch(() => null);
+    const results = this.toResults(parse(body));
+    // The same response may carry the automated status/news; hand it over untouched (the receiver validates it).
+    if (body && typeof body === 'object' && 'site' in body) this.onSite?.((body as { site: unknown }).site);
+    return results;
   }
 
   async vote(choice: Choice, retried = false): Promise<PollResults> {

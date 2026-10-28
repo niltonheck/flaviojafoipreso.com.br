@@ -25,6 +25,7 @@ export function makeEnv(over: Partial<Env> = {}) {
   const raw = new DatabaseSync(':memory:');
   raw.exec(readFileSync(new URL('../../migrations/0001_init.sql', import.meta.url), 'utf8'));
   raw.exec(readFileSync(new URL('../../migrations/0002_day_totals.sql', import.meta.url), 'utf8'));
+  raw.exec(readFileSync(new URL('../../migrations/0003_editorial.sql', import.meta.url), 'utf8'));
   raw.exec(readFileSync(new URL('../../seeds/staging.sql', import.meta.url), 'utf8'));
   const env: Env = { DB: makeD1(raw), ASSETS: { fetch: async () => new Response('asset') }, VOTER_HMAC_SECRET: SECRET, ...over };
   return { env, raw };

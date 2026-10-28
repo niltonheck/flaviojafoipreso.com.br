@@ -1,5 +1,11 @@
 import type { ArrestStatus, StatusRecord } from './types.ts';
 
+/**
+ * An automated status is re-checked every hour, so it only stays valid for ~3 hours (two missed runs). If the job
+ * dies, the page degrades to "NÃO VERIFICADO" quickly instead of leaving a stale answer up for the 72 h human window.
+ */
+export const AUTO_MAX_AGE_HOURS = 3;
+
 export const ANSWER_TEXT: Record<ArrestStatus, string> = { yes: 'SIM.', no: 'NÃO.', unverified: 'NÃO VERIFICADO' };
 
 export type StatusReason = 'ok' | 'never-checked' | 'stale' | 'unverified';

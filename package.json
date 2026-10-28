@@ -27,7 +27,10 @@
     "db:migrate:production": "npm run check:wrangler -- production && wrangler d1 migrations apply DB --env production --remote",
     "db:seed:production": "npm run check:wrangler -- production && wrangler d1 execute DB --env production --remote --file=seeds/production.sql",
     "deploy:production": "npm run check:wrangler -- production && npm run build && wrangler deploy --env production",
-    "health:production": "node scripts/health.ts https://flaviojafoipreso.com.br --expect=production"
+    "health:production": "node scripts/health.ts https://flaviojafoipreso.com.br --expect=production",
+    "site:show": "node scripts/site-state.ts show",
+    "site:hold": "node scripts/site-state.ts hold",
+    "site:auto": "node scripts/site-state.ts auto"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.12",

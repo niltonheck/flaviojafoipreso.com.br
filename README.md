@@ -43,8 +43,9 @@ scripts/                           validate-content, editor (news:add, status:se
 tests/                             vitest
 docs/EDITORIAL.md                  checklist e procedimento de correção
 docs/API.md · docs/DEPLOY.md       contrato da enquete · deploy, rollback e monitoramento
+docs/AUTOMATION.md                 job horário (notícias + status com Gemini), desligado por padrão
 src/lib/                     tipos, config, status (frescor), news, validate, PollRepository (mock + API)
-worker/                      Cloudflare Worker (API /api/*), migrations/, seeds/, wrangler.jsonc
+worker/                      Cloudflare Worker (API /api/*, crons: retenção + job editorial), migrations/, seeds/, wrangler.jsonc
 .github/workflows/           ci.yml (PRs) e deploy-staging.yml (manual)
 src/styles/global.css
 public/images/               portrait-320.webp, portrait-480.webp

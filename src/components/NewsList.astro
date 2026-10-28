@@ -5,7 +5,7 @@ import { fmtDate } from '../lib/format';
 interface Props { items: NewsItem[]; demo: boolean }
 const { items, demo } = Astro.props;
 ---
-<section class="card news" aria-labelledby="noticias-titulo">
+<section class="card news" aria-labelledby="noticias-titulo" data-news>
   <div class="card__head">
     <h2 id="noticias-titulo" class="card__title">Últimas notícias</h2>
     {demo && <span class="tag">DEMONSTRAÇÃO</span>}
@@ -28,3 +28,34 @@ const { items, demo } = Astro.props;
     </ol>
   )}
 </section>
+
+<script>
+  // Replaces the build-time headlines with the live ones served by the Worker (docs/AUTOMATION.md).
+  import { fmtDate } from '../lib/format';
+  import { SITE_EVENT, type SiteData } from '../lib/site';
+
+  const root = document.querySelector<HTMLElement>('[data-news]');
+  const render = (news: SiteData['news']) => {
+    if (!root || news.length === 0) return; // never replace real headlines with an empty list
+    const ol = document.createElement('ol');
+    ol.className = 'news__list';
+    for (const n of news.slice(0, 3)) {
+      const li = document.createElement('li');
+      li.className = 'news__item';
+      const time = document.createElement('time');
+      time.className = 'news__date'; time.dateTime = n.publishedAt; time.textContent = fmtDate(n.publishedAt);
+      const box = document.createElement('div');
+      const a = document.createElement('a'); // href is https-only: validated by parseSite
+      a.className = 'news__title'; a.href = n.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = n.headline;
+      const src = document.createElement('span');
+      src.className = 'news__source'; src.textContent = n.publisher;
+      box.append(a, src);
+      li.append(time, box);
+      ol.append(li);
+    }
+    root.querySelector('.news__list, .news__empty')?.replaceWith(ol);
+  };
+  const early = (window as unknown as { __fjfpSite?: SiteData }).__fjfpSite;
+  if (early) render(early.news);
+  document.addEventListener(SITE_EVENT, (e) => render((e as CustomEvent<SiteData>).detail.news));
+</script>

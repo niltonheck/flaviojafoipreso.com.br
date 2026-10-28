@@ -20,6 +20,14 @@ export interface Env {
   /** Extra allowed Origins for POST, comma separated. Same-origin is always allowed. */
   ALLOWED_ORIGINS?: string;
   VOTE_LIMITER?: RateLimiter;
+  /** Automated editorial job (docs/AUTOMATION.md). Nothing runs, and nothing is read by the page, unless this is exactly "true". */
+  AUTOMATION_ENABLED?: string;
+  GEMINI_API_KEY?: string;
+  GEMINI_MODEL?: string;
+  /** Alerts: Cloudflare send_email binding + verified destination (secret, kept out of git) and a sender on the zone. */
+  ALERTS?: { send(message: unknown): Promise<void> };
+  ALERT_TO?: string;
+  ALERT_FROM?: string;
 }
 
 export type Choice = 'yes' | 'no';

@@ -1,4 +1,5 @@
 import { newVoterId, rateKey, signVoterCookie, verifyVoterCookie, voterHash } from './crypto.ts';
+import { getStatus, latestNews } from './siteState.ts';
 import { brasiliaDay, currentPoll, insertVote, pollState, tally, viewerChoice, type PollRow, type Tally } from './poll.ts';
 import type { Choice, Env } from './types.ts';
 
@@ -31,6 +32,7 @@ export function createApi(deps: ApiDeps = {}) {
   const ttl = deps.cacheTtlMs ?? 15_000;
   // Anonymous aggregate counts only. Per-viewer state is always resolved fresh and never cached.
   const cache = new Map<string, { at: number; value: Tally }>();
+  let siteCache: { at: number; value: unknown } | null = null;
 
   async function counts(env: Env, poll: PollRow, day: string | null, fresh = false): Promise<Tally> {
     const k = `${poll.id}|${day ?? 'all'}`;
@@ -38,6 +40,22 @@ export function createApi(deps: ApiDeps = {}) {
     if (!fresh && hit && now().getTime() - hit.at < ttl) return hit.value;
     const value = await tally(env.DB, poll.id, day);
     cache.set(k, { at: now().getTime(), value });
+    return value;
+  }
+
+  /** Automated status + newest headlines (same for every viewer, so it may be cached briefly). Null until the job has run. */
+  async function readSite(env: Env) {
+    if (siteCache && now().getTime() - siteCache.at < ttl) return siteCache.value;
+    const [s, n] = await Promise.all([getStatus(env.DB), latestNews(env.DB, 3)]);
+    let evidence: unknown = [];
+    try { evidence = JSON.parse(s?.evidence ?? '[]'); } catch { /* keep [] */ }
+    const value = s
+      ? {
+          status: { status: s.status, checkedAt: s.checked_at, verifiedBy: s.verified_by, mode: s.mode, evidence },
+          news: n.results.map((r) => ({ headline: r.headline, publishedAt: r.published_at, publisher: r.publisher, url: r.url })),
+        }
+      : null;
+    siteCache = { at: now().getTime(), value };
     return value;
   }
 
@@ -94,7 +112,10 @@ export function createApi(deps: ApiDeps = {}) {
         const secure = new URL(request.url).protocol === 'https:' ? '; Secure' : '';
         extra['set-cookie'] = `${COOKIE}=${await signVoterCookie(secret, id)}; Path=/api; Max-Age=${COOKIE_MAX_AGE}; HttpOnly; SameSite=Lax${secure}`;
       }
-      return json(200, await snapshot(env, poll, now(), { id }), extra);
+      const body = await snapshot(env, poll, now(), { id });
+      // A failure reading the automated state must not break the poll: the page keeps its build-time snapshot.
+      const site = env.AUTOMATION_ENABLED === 'true' ? await readSite(env).catch(() => null) : null;
+      return json(200, site ? { ...body, site } : body, extra);
     } catch (e) {
       return unavailable('get', e);
     }

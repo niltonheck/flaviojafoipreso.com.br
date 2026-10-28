@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createApi } from '../worker/api.ts';
-import worker from '../worker/index.ts';
+import { CRON_RETENTION, handleScheduled } from '../worker/scheduled.ts';
 import { purgeOldVotes, purgeThroughDay } from '../worker/retention.ts';
 import { POLL_ID, get, makeEnv } from './helpers/d1.ts';
 
@@ -90,9 +90,7 @@ describe('scheduled handler', () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
     const { env, raw } = makeEnv();
     addVotes(raw, '2026-10-26', 2, 2);
-    let pending: Promise<unknown> = Promise.resolve();
-    await worker.scheduled({}, env, { waitUntil: (p) => { pending = p; } });
-    await pending;
+    await handleScheduled(CRON_RETENTION, env);
     expect(totals(raw)).toEqual([{ day: '2026-10-26', yes: 2, no: 2 }]);
     expect(JSON.stringify(log.mock.calls)).not.toMatch(/hash-/);
     log.mockRestore();

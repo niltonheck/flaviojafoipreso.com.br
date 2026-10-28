@@ -1,0 +1,8 @@
+[
+  { "id": "g1-politica", "url": "https://g1.globo.com/rss/g1/politica/", "publisher": "G1" },
+  { "id": "g1-home", "url": "https://g1.globo.com/rss/g1/", "publisher": "G1" },
+  { "id": "folha-poder", "url": "https://feeds.folha.uol.com.br/poder/rss091.xml", "publisher": "Folha de S.Paulo" },
+  { "id": "folha-ultimas", "url": "https://feeds.folha.uol.com.br/emcimadahora/rss091.xml", "publisher": "Folha de S.Paulo" },
+  { "id": "poder360", "url": "https://www.poder360.com.br/feed/", "publisher": "Poder360" },
+  { "id": "agenciabrasil", "url": "https://agenciabrasil.ebc.com.br/rss/politica/feed.xml", "publisher": "Agência Brasil" }
+]

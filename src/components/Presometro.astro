@@ -57,6 +57,7 @@ const yesPct = total ? Math.round((counts.yes / total) * 100) : 0;
 
 <script>
   import { ApiPollRepository } from '../lib/apiPollRepository';
+  import { SITE_EVENT, parseSite, type SiteData } from '../lib/site';
   import { PollError, type Choice, type PollRepository, type PollResults } from '../lib/pollRepository';
 
   const MESSAGES = {
@@ -82,7 +83,15 @@ const yesPct = total ? Math.round((counts.yes / total) * 100) : 0;
       const { MockPollRepository } = await import('../lib/mockPollRepository');
       repo = new MockPollRepository(seed);
     } else {
-      repo = new ApiPollRepository(); // poll id always comes from the server
+      repo = new ApiPollRepository({
+        // poll id always comes from the server; the same response may also carry the automated status/news
+        onSite: (raw) => {
+          const site = parseSite(raw);
+          if (!site) return;
+          (window as unknown as { __fjfpSite?: SiteData }).__fjfpSite = site;
+          document.dispatchEvent(new CustomEvent(SITE_EVENT, { detail: site }));
+        },
+      });
     }
 
     const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;

@@ -16,7 +16,9 @@ else {
   else if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(db.database_id) || /^0+(-0+)*$/.test(db.database_id)) {
     problems.push(`database_id de ${envName} ainda é placeholder (rode "wrangler d1 create" e cole o id; ver docs/DEPLOY.md)`);
   }
-  if (!env.triggers?.crons?.length) problems.push('cron da retenção (triggers.crons) ausente: sem ele os códigos de voto nunca são apagados');
+  const crons: string[] = env.triggers?.crons ?? [];
+  if (!crons.includes('0 5 * * *')) problems.push('cron da retenção (0 5 * * *) ausente: sem ele os códigos de voto nunca são apagados');
+  if (!crons.includes('0 * * * *')) problems.push('cron editorial (0 * * * *) ausente');
   if (!env.ratelimits?.some((r: { name: string }) => r.name === 'VOTE_LIMITER')) problems.push('binding VOTE_LIMITER ausente');
   if (envName === 'production' && env.workers_dev !== false) problems.push('produção não pode expor workers.dev');
   if (envName === 'production' && !env.routes?.length) problems.push('produção sem rota/domínio');

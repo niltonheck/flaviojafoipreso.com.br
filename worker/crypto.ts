@@ -44,4 +44,4 @@ export const voterHash = async (secret: string, id: string, pollId: string, day:
 
 /** Short non-reversible key for rate limiting; never persisted by us. */
 export const rateKey = async (secret: string, label: string, value: string) =>
-  `${label}:${(await hex(await mac(secret, `ratelimit:${label}:${value}`))).slice(0, 32)}`;
+  `${label}:${hex(await mac(secret, `ratelimit:${label}:${value}`)).slice(0, 32)}`;

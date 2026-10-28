@@ -25,7 +25,15 @@ describe('wrangler.jsonc', () => {
   });
 
   it('schedules the retention job in every environment', () => {
-    for (const env of [cfg, cfg.env.staging, cfg.env.production]) expect(env.triggers.crons).toEqual(['0 5 * * *']);
+    for (const env of [cfg, cfg.env.staging, cfg.env.production]) expect(env.triggers.crons).toEqual(['0 5 * * *', '0 * * * *']);
+  });
+
+  it('ships with the automation switched OFF and no secrets or personal addresses in the config', () => {
+    for (const env of [cfg, cfg.env.staging, cfg.env.production]) {
+      expect(env.vars.AUTOMATION_ENABLED).toBe('false');
+      expect(env.send_email).toEqual([{ name: 'ALERTS' }]); // no destination_address: that stays a secret
+      expect(JSON.stringify(env)).not.toMatch(/ALERT_TO|GEMINI_API_KEY|@gmail|@conbuss/i);
+    }
   });
 
   it('contains no secrets: the HMAC secret is a Worker secret, never in config', () => {
