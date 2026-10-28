@@ -6,3 +6,12 @@ INSERT OR IGNORE INTO polls (id, question, starts_at, closes_at, created_at) VAL
   '2027-10-28T02:59:59.000Z',
   '2026-10-27T12:00:00.000Z'
 );
+
+-- Same change as production (see seeds/production.sql). Starts after the old staging poll so it is the current one.
+INSERT OR IGNORE INTO polls (id, question, starts_at, closes_at, created_at) VALUES (
+  'staging-arrest-today',
+  'Você acha que Flávio Bolsonaro será preso hoje?',
+  '2026-01-02T03:00:00.000Z',
+  '2027-10-28T02:59:59.000Z',
+  '2026-10-28T03:00:00.000Z'
+);

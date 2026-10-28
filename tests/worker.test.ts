@@ -123,10 +123,29 @@ describe('POST /api/polls/:id/votes', () => {
     expect(await (await call(get('/api/polls/current', { headers: { cookie } }))).json()).toMatchObject({ state: 'closed', day: null, yes: 1 });
   });
 
-  it('refuses votes before the poll starts', async () => {
+  it('refuses votes before the poll starts (the "current" poll is then the earliest upcoming one)', async () => {
     const { call, visit } = await setup({ at: new Date('2025-01-01T12:00:00Z') });
     const { cookie } = await visit();
-    expect((await call(post('yes', cookie))).status).toBe(403);
+    const res = await call(post('yes', cookie, { path: '/api/polls/staging-arrest-by-2027-10-27/votes' }));
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'poll_upcoming' });
+  });
+
+  it('moves to the newest poll once it starts, leaving the older poll\'s votes untouched', async () => {
+    const { call, visit, c, raw } = await setup({ at: new Date('2026-01-01T12:00:00Z') }); // only the old staging poll has started
+    const { cookie } = await visit();
+    expect((await (await call(get('/api/polls/current', { headers: { cookie } }))).json()).id).toBe('staging-arrest-by-2027-10-27');
+    expect((await call(post('yes', cookie, { path: '/api/polls/staging-arrest-by-2027-10-27/votes' }))).status).toBe(201);
+
+    c.set(new Date('2026-01-03T12:00:00Z')); // the new poll has started
+    const now = await (await call(get('/api/polls/current', { headers: { cookie } }))).json();
+    expect(now).toMatchObject({ id: POLL_ID, question: 'Você acha que Flávio Bolsonaro será preso hoje?', yes: 0, total: 0, viewerHasVoted: false });
+    expect((await call(post('no', cookie, { path: '/api/polls/staging-arrest-by-2027-10-27/votes' }))).status).toBe(404); // old poll is no longer current
+    expect((await call(post('no', cookie))).status).toBe(201);
+    expect(raw.prepare('SELECT poll_id, choice FROM votes ORDER BY created_at').all()).toEqual([
+      { poll_id: 'staging-arrest-by-2027-10-27', choice: 'yes' },
+      { poll_id: POLL_ID, choice: 'no' },
+    ]);
   });
 
   it('404s for an unknown poll id', async () => {

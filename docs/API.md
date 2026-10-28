@@ -3,7 +3,7 @@
 Same-origin only: the Worker handles `/api/*`; everything else is static assets served by the CDN
 (`run_worker_first: ["/api/*"]`). No CORS headers are sent, so other sites cannot call it from a browser.
 
-**One vote per voter per day.** The question and the deadline (27/10/2027) never change; what changes is the
+**One vote per voter per day.** The question ("…será preso hoje?") never changes; what changes is the
 tally day. A "day" is the calendar day in America/Sao_Paulo; the count shown is *today's* tally and restarts at
 midnight Brasília. After the poll closes, the whole-poll total is shown.
 
@@ -11,10 +11,10 @@ midnight Brasília. After the poll closes, the whole-poll total is shown.
 
 ```json
 {
-  "id": "arrest-by-2027-10-27",
-  "question": "Você acha que Flávio Bolsonaro será preso até 27/10/2027?",
-  "startsAt": "2026-10-27T03:00:00.000Z",
-  "closesAt": "2027-10-28T02:59:59.000Z",
+  "id": "arrest-today",
+  "question": "Você acha que Flávio Bolsonaro será preso hoje?",
+  "startsAt": "2026-10-28T03:00:00.000Z",
+  "closesAt": "2031-01-01T02:59:59.000Z",
   "state": "open",            // open | closed | upcoming
   "day": "2026-10-27",        // Brasília day the tally covers; null when closed
   "yes": 0, "no": 0, "total": 0,

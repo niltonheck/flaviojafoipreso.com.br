@@ -19,7 +19,7 @@ export function makeD1(db: DatabaseSync): D1Like {
 }
 
 export const SECRET = 'test-secret-test-secret-test-secret-0123456789';
-export const POLL_ID = 'staging-arrest-by-2027-10-27';
+export const POLL_ID = 'staging-arrest-today';
 
 export function makeEnv(over: Partial<Env> = {}) {
   const raw = new DatabaseSync(':memory:');
