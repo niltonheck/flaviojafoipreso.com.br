@@ -30,10 +30,12 @@ describe('wrangler.jsonc', () => {
     expect(cfg.triggers.crons).toEqual(['0 5 * * *', '0 * * * *']);
   });
 
-  it('keeps production automation OFF, and holds no secrets or personal addresses in the config', () => {
-    // Production (and local dev) stay OFF until deliberately enabled; staging runs it for verification.
+  it('enables automation only in production, and holds no secrets or personal addresses in the config', () => {
+    // Automation runs only where it was deliberately enabled: production. Local dev and staging are OFF
+    // (staging is switched on only for verification, since it costs Gemini calls every hour).
     expect(cfg.vars.AUTOMATION_ENABLED).toBe('false');
-    expect(cfg.env.production.vars.AUTOMATION_ENABLED).toBe('false');
+    expect(cfg.env.staging.vars.AUTOMATION_ENABLED).toBe('false');
+    expect(cfg.env.production.vars.AUTOMATION_ENABLED).toBe('true');
     for (const env of [cfg, cfg.env.staging, cfg.env.production]) {
       expect(env.send_email).toEqual([{ name: 'ALERTS' }]); // no destination_address: that stays a secret
       expect(JSON.stringify(env)).not.toMatch(/ALERT_TO|GEMINI_API_KEY|@gmail|@conbuss/i);
