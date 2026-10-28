@@ -24,8 +24,10 @@ describe('wrangler.jsonc', () => {
     expect(cfg.env.production.routes[0].custom_domain).toBe(true);
   });
 
-  it('schedules the retention job in every environment', () => {
-    for (const env of [cfg, cfg.env.staging, cfg.env.production]) expect(env.triggers.crons).toEqual(['0 5 * * *', '0 * * * *']);
+  it('schedules the retention and hourly jobs in every environment, and never the test cron in production', () => {
+    for (const env of [cfg, cfg.env.staging, cfg.env.production]) expect(env.triggers.crons).toEqual(expect.arrayContaining(['0 5 * * *', '0 * * * *']));
+    expect(cfg.env.production.triggers.crons).toEqual(['0 5 * * *', '0 * * * *']);
+    expect(cfg.triggers.crons).toEqual(['0 5 * * *', '0 * * * *']);
   });
 
   it('keeps production automation OFF, and holds no secrets or personal addresses in the config', () => {

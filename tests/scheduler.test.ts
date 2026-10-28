@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { CRON_EDITORIAL, CRON_RETENTION, handleScheduled } from '../worker/scheduled.ts';
+import { CRON_EDITORIAL, CRON_EDITORIAL_TEST, CRON_RETENTION, handleScheduled } from '../worker/scheduled.ts';
 import { buildMime } from '../worker/alert.ts';
 import { G1_A, NORMAL, NOW, allFeeds, fakeFetch } from './helpers/feeds.ts';
 import { makeEnv } from './helpers/d1.ts';
@@ -61,6 +61,14 @@ describe('editorial cron end to end (fake feeds + fake Gemini)', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     await handleScheduled(CRON_EDITORIAL, env, { now: () => NOW, fetchFn: fakeFetch(routes()) });
     expect(state(raw)).toEqual({ status: 'yes', mode: 'manual' });
+  });
+});
+
+describe('verification-only cron', () => {
+  it('runs the same editorial job (so staging can be checked within minutes)', async () => {
+    const { env, raw } = makeEnv({ AUTOMATION_ENABLED: 'true', GEMINI_API_KEY: 'k' });
+    await handleScheduled(CRON_EDITORIAL_TEST, env, { now: () => NOW, fetchFn: fakeFetch(routes(NORMAL, geminiOk({ arrest_reported: 'no', evidence: [] }))) });
+    expect(state(raw)).toEqual({ status: 'no', mode: 'auto' });
   });
 });
 

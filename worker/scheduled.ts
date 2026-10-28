@@ -6,6 +6,8 @@ import type { Env } from './types.ts';
 
 export const CRON_RETENTION = '0 5 * * *';
 export const CRON_EDITORIAL = '0 * * * *';
+/** Verification-only schedule: staging may add it temporarily to see a run within minutes. check-wrangler forbids it in production. */
+export const CRON_EDITORIAL_TEST = '*/2 * * * *';
 
 export type SchedulerDeps = {
   now?: () => Date;
@@ -28,7 +30,7 @@ export async function handleScheduled(cron: string, env: Env, d: SchedulerDeps =
     return;
   }
 
-  if (cron === CRON_EDITORIAL) {
+  if (cron === CRON_EDITORIAL || cron === CRON_EDITORIAL_TEST) {
     if (env.AUTOMATION_ENABLED !== 'true') return console.log('editorial', { skipped: 'AUTOMATION_ENABLED is not true' });
     const classify: Classify | undefined = env.GEMINI_API_KEY
       ? (items) => classifyArrest(items, { apiKey: env.GEMINI_API_KEY!, model: env.GEMINI_MODEL, fetchFn })

@@ -1,6 +1,6 @@
 import { ClassifierError, type Verdict } from './gemini.ts';
 import { fetchFeeds, type Feed, type FeedItem, type FeedResult } from './feeds.ts';
-import { arrestTripwire, isAboutFlavio } from './relevance.ts';
+import { arrestTripwire, isAboutFlavio, speculatesAboutArrest } from './relevance.ts';
 import { addNews, getStatus, logRun, setStatus } from './siteState.ts';
 import type { D1Like } from './types.ts';
 
@@ -81,7 +81,8 @@ export async function runEditorial(db: D1Like, d: EditorialDeps) {
     .slice(0, 25);
 
   // News is verbatim publisher headlines from allowlisted domains, so it publishes even when the status check is degraded.
-  const newNews = await addNews(db, relevant.map((i) => ({ headline: i.title, publishedAt: i.publishedAt!, publisher: i.publisher, url: i.url })), now);
+  const publishable = relevant.filter((i) => !speculatesAboutArrest(i));
+  const newNews = await addNews(db, publishable.map((i) => ({ headline: i.title, publishedAt: i.publishedAt!, publisher: i.publisher, url: i.url })), now);
 
   const summary = { feedsOk: results.filter((r) => r.ok).length, feedsTotal: results.length, relevant: relevant.length, newNews };
 

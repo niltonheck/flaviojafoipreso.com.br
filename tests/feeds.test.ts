@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { canonicalUrl, fetchFeeds, parseFeed } from '../worker/feeds.ts';
-import { arrestTripwire, isAboutFlavio } from '../worker/relevance.ts';
+import { arrestTripwire, isAboutFlavio, speculatesAboutArrest } from '../worker/relevance.ts';
 import { FEEDS, G1_A, fakeFetch, rss } from './helpers/feeds.ts';
 
 describe('canonicalUrl', () => {
@@ -76,4 +76,22 @@ describe('arrestTripwire', () => {
     'Aliados de Flávio dizem que ele não está preso',
     'Prisão de aliado de Flávio é decretada',
   ])('stays quiet on: %s', (title) => expect(arrestTripwire({ title })).toBe(false));
+});
+
+describe('speculatesAboutArrest (never imply an imminent arrest)', () => {
+  it.each([
+    'Fuga do Brasil dá base para prisão preventiva de Flávio Bolsonaro, dizem especialistas',
+    'PGR pede prisão de Flávio Bolsonaro',
+    'Flávio Bolsonaro pode ser preso se não entregar passaporte',
+    'Moraes avalia mandado de prisão contra Flávio',
+    'Flávio corre risco de ser preso, diz advogado',
+    'Cadê Flávio? Quando será preso?',
+  ])('blocks: %s', (title) => expect(speculatesAboutArrest({ title })).toBe(true));
+  it.each([
+    'Flávio Bolsonaro chega aos EUA, diz BBC',
+    'Moraes manda Flávio entregar passaporte e o proíbe de deixar o país',
+    'PF apura se Flávio Bolsonaro deixou o Brasil pela fronteira com a Argentina',
+    '“Não é fuga, mas exílio”, dizem bolsonaristas sobre Flávio sair do país',
+    'Leia a cronologia dos fatos que levaram Flávio a deixar o Brasil',
+  ])('allows: %s', (title) => expect(speculatesAboutArrest({ title })).toBe(false));
 });

@@ -30,3 +30,18 @@ export function arrestTripwire(i: Pick<FeedItem, 'title'>): boolean {
     return !!m && !NEGATION.test(i.title.slice(Math.max(0, m.index - 25), m.index + m[0].length));
   });
 }
+
+const SPECULATION: RegExp[] = [
+  /pris[aã]o\s+(preventiva|tempor[aá]ria|domiciliar|em\s+flagrante)/i,
+  /(pedido|pedem|pede|ordem|mandado|decreta[cç][aã]o)\s+(de\s+)?pris[aã]o/i,
+  /\b(base|motivo|raz[aã]o|risco|chance|possibilidade)s?\s+(para|de)\s+(a\s+)?(pris[aã]o|ser\s+preso|prend)/i,
+  /\b(pode|poder[aá]|podem|deve|dever[aá]|devem|vai|va[ií]|ser[aá]|corre\s+risco\s+de|amea[cç]a\s+de)\s+(ser\s+)?(preso|presa|presos|detido)\b/i,
+  /\b(cad[eê]|quando|se)\s+(ser[aá]\s+)?(preso|a\s+pris[aã]o)\b/i,
+];
+
+/**
+ * Editorial rule (docs/AUTOMATION.md): the site never implies an arrest is scheduled or imminent. Headlines that
+ * speculate about a future arrest ("prisão preventiva", "pode ser preso", "pedido de prisão"…) are not published
+ * as news, even though they still feed the status check, which must see them.
+ */
+export const speculatesAboutArrest = (i: Pick<FeedItem, 'title'>): boolean => SPECULATION.some((re) => re.test(i.title));

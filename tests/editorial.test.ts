@@ -37,6 +37,14 @@ describe('happy path', () => {
     expect(runs(raw)).toEqual(['renewed']);
   });
 
+  it('does not publish headlines that speculate about a future arrest, but still lets them inform the status check', async () => {
+    const classify = vi.fn(NO);
+    const routes = allFeeds([...NORMAL, { title: 'Fuga do Brasil dá base para prisão preventiva de Flávio Bolsonaro, dizem especialistas', link: 'https://www1.folha.uol.com.br/poder/2026/10/spec.shtml', ageHours: 1 }]);
+    const { raw } = await go({ routes, classify });
+    expect(raw.prepare('SELECT headline FROM news_items').all()).toEqual([{ headline: NORMAL[0].title }]); // speculation not published
+    expect((classify.mock.calls[0][0] as { title: string }[]).some((i) => /preventiva/.test(i.title))).toBe(true); // ...but the classifier saw it
+  });
+
   it('does not duplicate headlines on later runs', async () => {
     const e = await go();
     const again = await runEditorial(e.env.DB, { now: () => NOW, fetchFn: fakeFetch(allFeeds(NORMAL)), feeds: FEEDS, classify: NO });

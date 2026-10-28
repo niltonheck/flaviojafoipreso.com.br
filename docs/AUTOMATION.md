@@ -12,6 +12,8 @@ This deliberately relaxes Spec C §3 ("never auto-promote status from AI output"
    `src/data/trusted-sources.json` are kept; redirect wrappers are unwrapped; tracking params are dropped.
 2. **News:** headlines whose title names Flávio Bolsonaro (not Flávio Dino, not a passing mention) are stored
    **verbatim** with publisher, link and timestamp. No AI writes any text. The page shows the 3 newest.
+   Headlines that speculate about a *future* arrest ("prisão preventiva", "pode ser preso", "pedido de prisão"…) are
+   not published (the site never implies an arrest is imminent) but are still shown to the status check.
 3. **Status**, in this order. Any failure => `unverified`:
    1. enough live feeds (≥3 feeds, ≥2 outlets, newest item < 48 h old) — else `feeds-unhealthy`
    2. at least one headline about him in the last 48 h — else `no-recent-coverage`

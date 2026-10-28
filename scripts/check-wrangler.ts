@@ -20,6 +20,7 @@ else {
   if (!crons.includes('0 5 * * *')) problems.push('cron da retenção (0 5 * * *) ausente: sem ele os códigos de voto nunca são apagados');
   if (!crons.includes('0 * * * *')) problems.push('cron editorial (0 * * * *) ausente');
   if (!env.ratelimits?.some((r: { name: string }) => r.name === 'VOTE_LIMITER')) problems.push('binding VOTE_LIMITER ausente');
+  if (envName === 'production' && crons.includes('*/2 * * * *')) problems.push('o cron de teste (*/2 * * * *) não pode ir para produção');
   if (envName === 'production' && env.workers_dev !== false) problems.push('produção não pode expor workers.dev');
   if (envName === 'production' && !env.routes?.length) problems.push('produção sem rota/domínio');
   if (envName === 'staging' && env.routes?.length) problems.push('staging não deve ter rota de domínio público');
