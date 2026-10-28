@@ -19,7 +19,7 @@ export default {
     return (await api.handle(request, env)) ?? env.ASSETS.fetch(request);
   },
 
-  /** Cron triggers (wrangler.jsonc): 05:00 UTC retention purge, hourly editorial job. */
+  /** Cron triggers (wrangler.jsonc): 05:00 UTC retention purge, editorial job 3x/day. */
   async scheduled(event: { cron: string }, env: Env, ctx: { waitUntil(p: Promise<unknown>): void }): Promise<void> {
     ctx.waitUntil(handleScheduled(event.cron, env, { sendMail }));
   },

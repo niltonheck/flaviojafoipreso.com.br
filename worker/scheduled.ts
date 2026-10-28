@@ -5,7 +5,8 @@ import { purgeOldVotes } from './retention.ts';
 import type { Env } from './types.ts';
 
 export const CRON_RETENTION = '0 5 * * *';
-export const CRON_EDITORIAL = '0 * * * *';
+// 01:00, 09:00, 17:00 UTC = 22:00, 06:00, 14:00 Brasília: every 8 h. Keep AUTO_MAX_AGE_HOURS (src/lib/status.ts) in step.
+export const CRON_EDITORIAL = '0 1,9,17 * * *';
 /** Verification-only schedule: staging may add it temporarily to see a run within minutes. check-wrangler forbids it in production. */
 export const CRON_EDITORIAL_TEST = '*/2 * * * *';
 

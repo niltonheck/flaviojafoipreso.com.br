@@ -1,6 +1,6 @@
-# Automated editorial job (hourly)
+# Automated editorial job (3x/day)
 
-A Cloudflare Worker cron (`0 * * * *`) reads the trusted outlets' RSS feeds, publishes verbatim headlines about
+A Cloudflare Worker cron (`0 1,9,17 * * *` UTC = 22:00, 06:00 and 14:00 Brasília) reads the trusted outlets' RSS feeds, publishes verbatim headlines about
 Flávio Bolsonaro, and re-checks the status. It is **off by default**: nothing runs, and the page ignores any stored
 state, unless the Worker variable `AUTOMATION_ENABLED` is exactly `"true"` (the kill switch).
 
@@ -28,7 +28,8 @@ This deliberately relaxes Spec C §3 ("never auto-promote status from AI output"
 If the job itself crashes, it sets `unverified` (fail closed). A human-set status is never touched.
 
 ## Freshness
-An automated status is valid for **3 hours** (`AUTO_MAX_AGE_HOURS`, two missed runs). If the cron dies, the page
+An automated status is valid for **18 hours** (`AUTO_MAX_AGE_HOURS`: one missed 8 h run plus a margin; a test ties it
+to the cron gaps). If the cron dies, the page
 degrades to "NÃO VERIFICADO" by itself. A manual status keeps the 72 h window.
 
 ## Human control
@@ -36,7 +37,7 @@ degrades to "NÃO VERIFICADO" by itself. A manual status keeps the 72 h window.
 npm run site:show -- --env staging                         # current stored state + newest headlines
 npm run site:hold -- yes --env staging --source <url> …    # you own the status ("yes" needs trusted HTTPS sources)
 npm run site:hold -- no  --env staging                     # hold NÃO. yourself
-npm run site:auto -- --env staging                         # hand control back to the hourly job
+npm run site:auto -- --env staging                         # hand control back to the automated job
 ```
 While a status is `manual`, the job still publishes news but never changes the status.
 
@@ -72,6 +73,7 @@ While a status is `manual`, the job still publishes news but never changes the s
 
 ## Risks that remain
 - The tripwire and Gemini can miss a real arrest reported only in prose or only outside the 6 feeds. Worst case the
-  site shows "NÃO." for up to ~3 hours after an arrest. Unlike before, nothing ever shows "SIM" by itself.
+  site shows "NÃO." for up to ~8 hours after an arrest (up to 18 h if the job itself dies). The hourly version cut that to
+  ~1 h; running 3x/day trades that lag for fewer Gemini calls. Unlike before, nothing ever shows "SIM" by itself.
 - Feed text is untrusted: the prompt tells the model to ignore instructions inside it, and a "no" can only renew
   "NÃO."; it cannot publish text or "SIM". The headlines come from allowlisted outlets only.

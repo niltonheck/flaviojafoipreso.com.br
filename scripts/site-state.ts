@@ -1,7 +1,7 @@
 // Human control of the automated status (docs/AUTOMATION.md). Talks to the remote D1 of an environment.
 //   npm run site:show  -- --env staging
 //   npm run site:hold  -- <yes|no|unverified> --env staging [--source <url>]…   a human owns the status; the job leaves it alone
-//   npm run site:auto  -- --env staging                                         hand control back to the hourly job
+//   npm run site:auto  -- --env staging                                         hand control back to the automated job
 // "yes" requires at least one trusted HTTPS source and is NEVER set by the job.
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';

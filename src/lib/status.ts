@@ -1,10 +1,11 @@
 import type { ArrestStatus, StatusRecord } from './types.ts';
 
 /**
- * An automated status is re-checked every hour, so it only stays valid for ~3 hours (two missed runs). If the job
+ * An automated status is re-checked every 8 hours (3x/day), so it stays valid for 18 h: one missed run plus a margin.
+ * Two missed runs expire it. tests/wrangler.test.ts ties this number to the cron gaps. If the job
  * dies, the page degrades to "NÃO VERIFICADO" quickly instead of leaving a stale answer up for the 72 h human window.
  */
-export const AUTO_MAX_AGE_HOURS = 3;
+export const AUTO_MAX_AGE_HOURS = 18;
 
 export const ANSWER_TEXT: Record<ArrestStatus, string> = { yes: 'SIM.', no: 'NÃO.', unverified: 'NÃO VERIFICADO' };
 
